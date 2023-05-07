@@ -4,14 +4,19 @@ from sympy.parsing.sympy_parser import parse_expr
 from numericals import Numerical
 
 class Weight:
-    def __init__(self, portfolio_tickers=[], raw_calculations="", signals=[]):
-        self.numerical = Numerical()
+    def __init__(self, portfolio_tickers=[], raw_calculations="", signals=[],
+                 period = "100d", interval="1d", time_zone = None, filter=["Return"]):
+        
+        self.numerical = Numerical(period, interval, time_zone, filter)
         self.portfolio_tickers = portfolio_tickers if type(portfolio_tickers) == list else [portfolio_tickers]
         self.raw_calculations = raw_calculations
         self.signals = signals
         self.variable_dict = self.get_variable_dict()
 
         self.__updateVariableDict(raw_calculations)
+
+    def update_numericals(self):
+        self.numerical.update_defaults(period = "100d", interval="1d", time_zone = None, filter=["Return"])
 
     def get_weight():
         pass
