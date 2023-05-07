@@ -11,19 +11,13 @@ class Weight:
         self.signals = signals
         self.variable_dict = self.get_variable_dict()
 
-        self.__updateVariableDict(raw_calculations)
+        self.__update_variable_dict(raw_calculations)
 
     def update_numericals(self):
         self.numerical.update_defaults(period = "100d", interval="1d", time_zone = None, filter=["Return"])
 
-    def get_weight():
+    def get():
         pass
-
-    def evaluate_expression(self, str_expression, variable_dict = None):
-        variable_dict = self.variable_dict if variable_dict == None else variable_dict
-        expr = Expression(str_expression, variable_dict)
-
-        return expr.evaluate()
     
     def get_variable_dict(self, porfolio_tickers=None, inplace=True):
         porfolio_tickers = self.portfolio_tickers if porfolio_tickers == None else porfolio_tickers
@@ -40,7 +34,7 @@ class Weight:
 
         return variable_dict
     
-    def __updateVariableDict(self, raw_calculations):
+    def __update_variable_dict(self, raw_calculations):
         equation_list = raw_calculations.split("\n")
 
         for equation in equation_list:
