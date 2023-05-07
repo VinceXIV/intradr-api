@@ -35,10 +35,9 @@ class Expression:
                 f_expression_results[expression] = val
 
         for key in f_expression_results:
-            str_expression.replace(key, str(f_expression_results[key]))
+            str_expression = str_expression.replace(key, str(f_expression_results[key]))
 
-        return f_expression_results
-        # return parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all")
+        return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
     
     # This function returns an object of arrays in the form {average: [], min: []}.
     # The arrays, on the other hand, are in the form; 
