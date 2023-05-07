@@ -7,8 +7,11 @@ class Asset:
     def __init__(self):
         self.ss = StockSymbol("fb6844dd-04c4-4a1e-9596-6b451a0461b3")
 
-    def find(self, asset_name, market="US", index=None):
-        market_data = pd.DataFrame(self.ss.get_symbol_list(market=market, index=index))
+    def find(self, asset_name=None, market="US", index=None):
+        if(asset_name == None):
+            return self.ss.get_symbol_list(market=market, index=index)
+        else:
+            market_data = pd.DataFrame(self.ss.get_symbol_list(market=market, index=index))
 
         distances = []
         for asset in market_data["shortName"]:
