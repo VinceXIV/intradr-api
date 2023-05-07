@@ -1,10 +1,18 @@
 import yfinance as yf 
+import utility_functions
 
 class Numerical:
-    def __init__(self, start_time = None, end_time = None, interval_time = None):
-        self.start_time = start_time
-        self.end_time = end_time
-        self.interval_time = interval_time
+    def __init__(self, period = "100d", interval="1d", time_zone = None, filter=None):
+        self.period = period
+        self.interval = interval
+        self.time_zone = time_zone
+        self.filter = filter
+
+    def update_defaults(self, period = "100d", interval="1d", time_zone = None, filter=["Return"]):
+        self.period = period
+        self.interval = interval
+        self.time_zone = time_zone
+        self.filter = filter
 
     def get_numeric_info(self, ticker):
         ticker_details = yf.Ticker(ticker)
