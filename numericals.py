@@ -37,8 +37,9 @@ class Numerical:
 
         data = yf.download(tickers=ticker, period=period, interval=interval)
         data = data.index.tz_convert(time_zone) if time_zone != None else data
+        data.columns = [utility_functions.snake_case(colname) for colname in data.columns]
 
-        data['Return'] = data["Adj Close"].pct_change()
+        data['return'] = data["adj_close"].pct_change()
 
         if(filter != None):
             return data[filter]
@@ -59,7 +60,7 @@ class Numerical:
         data_min = data.min()
   
         for field in data_mean.index:
-            field_name_snake_cased = utility_functions.make_snake_case(field)
+            field_name_snake_cased = utility_functions.snake_case(field)
             ticker_info["average_" + field_name_snake_cased] = data_mean[field]
             ticker_info["max_" + field_name_snake_cased] = data_max[field]
             ticker_info["min_" + field_name_snake_cased] = data_min[field]
