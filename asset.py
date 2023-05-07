@@ -1,13 +1,14 @@
 from stocksymbol import StockSymbol
 from difflib import SequenceMatcher
 import pandas as pd
+from ssm import *
 
 
 class Asset:
     def __init__(self, ticker, market="US", index=None):
         self.market = market
         self.index = index
-        self.ss = StockSymbol("fb6844dd-04c4-4a1e-9596-6b451a0461b3")
+        self.ss = StockSymbol(sym)
 
         symbol_list = self.ss.get_symbol_list(market=market, index=index)
         info = dict(pd.DataFrame(symbol_list).set_index('symbol').loc[ticker, :])
