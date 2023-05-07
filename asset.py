@@ -14,7 +14,10 @@ class Asset:
         info = dict(pd.DataFrame(symbol_list).set_index('symbol').loc[ticker, :])
         info["ticker"] = ticker
 
-        self.info = info
+        self.info = dict(info)
+
+    def get(self):
+        return self.info
 
     def find(self, asset_name=None, market=None, index=None):
         market = market if market != None else self.market
