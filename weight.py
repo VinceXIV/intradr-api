@@ -1,7 +1,5 @@
-import numpy as np
-import pandas as pd
-from sympy.parsing.sympy_parser import parse_expr
 from numericals import Numerical
+from expression import Expression
 
 class Weight:
     def __init__(self, portfolio_tickers=[], raw_calculations="", signals=[],
@@ -23,8 +21,9 @@ class Weight:
 
     def evaluate_expression(self, str_expression, variable_dict = None):
         variable_dict = self.variable_dict if variable_dict == None else variable_dict
+        expr = Expression(str_expression, variable_dict)
 
-        return parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all")
+        return expr.evaluate()
     
     def get_variable_dict(self, porfolio_tickers=None, inplace=True):
         porfolio_tickers = self.portfolio_tickers if porfolio_tickers == None else porfolio_tickers
