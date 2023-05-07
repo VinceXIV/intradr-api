@@ -72,8 +72,6 @@ class Expression:
         numerical = Numerical(period = period, interval=interval, time_zone = None, filter=val)
         historical_data = numerical.get_historical_data(ticker = ticker)
 
-        print(historical_data)
-
         if(f == "average"):
             return historical_data.mean()
         elif(f == "max"):
