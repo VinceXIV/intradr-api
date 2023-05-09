@@ -1,1 +1,3 @@
 ssm.py
+env/
+__pycache__
