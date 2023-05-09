@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import re
 from numericals import Numerical
 from sympy.parsing.sympy_parser import parse_expr
@@ -109,8 +107,8 @@ class Expression:
     # This method accepts a string such as
     # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"
     # in string format and returns the innermost function, which in this case is
-    # "_transpose(_Portfolio_weights)". The return will be of array type (we may have multiple)
-    # inner functions so effectively. So our return from above will be ["_transpose(_Portfolio_weights)"]
+    # "_transpose(_Portfolio_weights)". The return will be of array type (we may have multiple
+    # inner functions) so effectively. So our return from above will be ["_transpose(_Portfolio_weights)"]
     # We want to do this because in such a nested case, we want to
     # evaluate innermost functions first before we proceed with the outer ones
     # The function also accepts the number of arguments, which it uses to construct the
@@ -121,8 +119,8 @@ class Expression:
         # number of arguments we can extract. For instance, if we wnat to extract
         # an inner function that accepts two arguments, the regex for that will
         # be r"\w+\(\w+\s*,\s*\w+\)". That is what we are doing here
-        r = "".join([",\s*\w+" for i in range(arguments_count-1)]) + "\)"
-        regex = r"\w+\(\w+\s*" + r
+        r = "".join([",\s*\w+\s*" for i in range(arguments_count-1)]) + "\)"
+        regex = r"\w+\(\s*\w+\s*" + r
 
         return re.findall(regex, str_expression)
 
