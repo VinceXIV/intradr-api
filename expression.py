@@ -15,17 +15,20 @@ class Expression:
         ## <function name>(<asset_variable>, <period> <interval>)
         ## e.g "average(AAPL_portfolio, 10d, 1d)"
         self.asset_functions = [
-            "average", "max", "min"
+            "_average", "_max", "_min", "_stdev"
         ]
 
         self.matrix_functions = [
-            "mmult", "transpose"
+            "_mmult", "_transpose"
+        ]
+
+        self.portfolio_functions = [
+            "_return", "_volume", "_price"
         ]
         
     def evaluate(self, str_expression=None, variable_dict = {}):
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
         str_expression = self.expression if str_expression == None else str_expression
-
     
         # This function returns an object of arrays in the form {average: [], min: []}.
         # The arrays, on the other hand, are in the form; 
@@ -65,7 +68,17 @@ class Expression:
                 asset_functions[f] = re.findall(regex, str_expression)
 
         return asset_functions
-        
+
+    def get_matrix_functions(self, str_expression):
+        matrix_functions = {}
+        for f in self.matrix_functions:
+            if(f in str_expression):
+                regex = r"{f}\(\w+,\s*\w+,\s*\w+\)".format(f=f)
+                
+                matrix_functions[f] = re.findall(regex, str_expression)
+
+        return matrix_functions
+                
     # Takes in asset_functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
     # and returns the solution to the expression also in string format
     def __evaluate_asset_function(self, function_, expression):
@@ -84,13 +97,33 @@ class Expression:
         numerical = Numerical(period = period, interval=interval, time_zone = None, filter=val)
         historical_data = numerical.get_historical_data(ticker = ticker)
 
-        if(f == "average"):
+        if(f == "_average"):
             return historical_data.mean()
-        elif(f == "max"):
+        elif(f == "_max"):
             return historical_data.max()
-        elif(f == "min"):
+        elif(f == "_min"):
             return historical_data.min()
-        elif(f == "stdev"):
+        elif(f == "_stdev"):
             return historical_data.std()
+    
+    # This method accepts a string such as
+    # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"
+    # in string format and returns the innermost function, which in this case is
+    # "_transpose(_Portfolio_weights)". The return will be of array type (we may have multiple)
+    # inner functions so effectively. So our return from above will be ["_transpose(_Portfolio_weights)"]
+    # We want to do this because in such a nested case, we want to
+    # evaluate innermost functions first before we proceed with the outer ones
+    # The function also accepts the number of arguments, which it uses to construct the
+    # regex for extracting the innermost function
+    def get_innermost_functions(self, str_expression, arguments_count):
+
+        # The ",\s*\w+" extracts a single argument. We want to be flexible with the
+        # number of arguments we can extract. For instance, if we wnat to extract
+        # an inner function that accepts two arguments, the regex for that will
+        # be r"\w+\(\w+\s*,\s*\w+\)". That is what we are doing here
+        r = "".join([",\s*\w+" for i in range(arguments_count-1)]) + "\)"
+        regex = r"\w+\(\w+\s*" + r
+
+        return re.findall(regex, str_expression)
 
     
