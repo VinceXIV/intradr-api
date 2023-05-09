@@ -9,18 +9,19 @@ class Expression:
         self.variable_dict = variable_dict
         self.expression = str_expression
 
-        ## functions that are expected to come in the form
-        ## <function name>(<asset_variable>, <period> <interval>)
-        ## e.g "average(AAPL_portfolio, 10d, 1d)"
-        self.asset_functions = [
+        # functions that are expected to come in the form
+        # <function name>(<asset_variable>, <period> <interval>)
+        # e.g "average(AAPL_portfolio, 10d, 1d)"
+        # I am calling them simple functions because they return a value.
+        # Like, if you call _average(AAPL_return, 10d, 1d), you will get
+        # value like 10
+        self.simple_functions = [
             "_average", "_max", "_min", "_stdev"
         ]
 
+        # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
         self.matrix_functions = [
-            "_mmult", "_transpose"
-        ]
-
-        self.portfolio_functions = [
+            "_mmult", "_transpose",
             "_return", "_volume", "_price"
         ]
         
@@ -33,7 +34,7 @@ class Expression:
         # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
         # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
         # shows the period and interval that we can use with yfinance to get info on them
-        asset_functions_used = self.get_asset_functions(str_expression)
+        simple_functions_used = self.get_simple_functions(str_expression)
 
         # Here, the f_expression_results will end up being in the form
         # {average(AAPL_return, 10d, 1m): 100, max(MSFT_vol, 15d, 1m): 50000}
@@ -42,8 +43,8 @@ class Expression:
         # we can thus simply string replace these values with whatever we get from
         # f_expression_results below
         f_expression_results = {}
-        for f in asset_functions_used:
-            for expression in asset_functions_used[f]:
+        for f in simple_functions_used:
+            for expression in simple_functions_used[f]:
                 val = self.__evaluate_asset_function(function_=f, expression=expression)
                 f_expression_results[expression] = val
 
@@ -57,15 +58,15 @@ class Expression:
     # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
     # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
     # shows the period and interval that we can use with yfinance to get info on them
-    def get_asset_functions(self, str_expression):
-        asset_functions = {}
-        for f in self.asset_functions:
+    def get_simple_functions(self, str_expression):
+        simple_functions = {}
+        for f in self.simple_functions:
             if(f in str_expression):
                 regex = r"{f}\(\w+,\s*\w+,\s*\w+\)".format(f=f)
                 
-                asset_functions[f] = re.findall(regex, str_expression)
+                simple_functions[f] = re.findall(regex, str_expression)
 
-        return asset_functions
+        return simple_functions
 
     def get_matrix_functions(self, str_expression):
         matrix_functions = {}
@@ -77,7 +78,7 @@ class Expression:
 
         return matrix_functions
                 
-    # Takes in asset_functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
+    # Takes in simple_functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
     # and returns the solution to the expression also in string format
     def __evaluate_asset_function(self, function_, expression):
         f = function_
