@@ -10,17 +10,29 @@ class Expression:
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
         self.expression = str_expression
-        self.functions = [
+
+        ## functions that are expected to come in the form
+        ## <function name>(<asset_variable>, <period> <interval>)
+        ## e.g "average(AAPL_portfolio, 10d, 1d)"
+        self.asset_functions = [
             "average", "max", "min"
+        ]
+
+        self.matrix_functions = [
+            "mmult", "transpose"
         ]
         
     def evaluate(self, str_expression=None, variable_dict = {}):
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
         str_expression = self.expression if str_expression == None else str_expression
 
-        # Find the functions used in the expressions for which
-        # we have defined ways to solve
-        functions_used = self.get_functions(str_expression)
+    
+        # This function returns an object of arrays in the form {average: [], min: []}.
+        # The arrays, on the other hand, are in the form; 
+        # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
+        # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
+        # shows the period and interval that we can use with yfinance to get info on them
+        asset_functions_used = self.get_asset_functions(str_expression)
 
         # Here, the f_expression_results will end up being in the form
         # {average(AAPL_return, 10d, 1m): 100, max(MSFT_vol, 15d, 1m): 50000}
@@ -29,9 +41,9 @@ class Expression:
         # we can thus simply string replace these values with whatever we get from
         # f_expression_results below
         f_expression_results = {}
-        for f in functions_used:
-            for expression in functions_used[f]:
-                val = self.__evaluate_function(function_=f, expression=expression)
+        for f in asset_functions_used:
+            for expression in asset_functions_used[f]:
+                val = self.__evaluate_asset_function(function_=f, expression=expression)
                 f_expression_results[expression] = val
 
         for key in f_expression_results:
@@ -44,19 +56,19 @@ class Expression:
     # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
     # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
     # shows the period and interval that we can use with yfinance to get info on them
-    def get_functions(self, str_expression):
-        functions = {}
-        for f in self.functions:
+    def get_asset_functions(self, str_expression):
+        asset_functions = {}
+        for f in self.asset_functions:
             if(f in str_expression):
                 regex = r"{f}\(\w+,\s*\w+,\s*\w+\)".format(f=f)
                 
-                functions[f] = re.findall(regex, str_expression)
+                asset_functions[f] = re.findall(regex, str_expression)
 
-        return functions
-    
-    # Takes in functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
+        return asset_functions
+        
+    # Takes in asset_functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
     # and returns the solution to the expression also in string format
-    def __evaluate_function(self, function_, expression):
+    def __evaluate_asset_function(self, function_, expression):
         f = function_
 
         # If an expression is like average(AAPL_return, 10d, 1m) I separate them such that
