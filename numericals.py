@@ -1,5 +1,6 @@
 import yfinance as yf 
 import utility_functions
+import re
 
 class Numerical:
     def __init__(self, period = "100d", interval="1d", time_zone = None, filter=None):
@@ -35,11 +36,22 @@ class Numerical:
         time_zone = time_zone if time_zone != None else self.time_zone
         filter = filter if filter != None else self.filter
 
+        # Add 1 to the period. For instance, if the period is 1d, add one so it becomes 2d
+        # we are doing this because when calculating daily return, the first value will be NaN
+        # and we don't want that NaN in our dataframe
+        period_count = str(int(re.findall(r"\d+", period)[0])+1)
+        period_length = re.findall(r"[a-zA-Z]", period)[0]
+        period =  period_count + period_length
+
+        print("period: ", period)
         data = yf.download(tickers=ticker, period=period, interval=interval)
         data = data.index.tz_convert(time_zone) if time_zone != None else data
         data.columns = [utility_functions.snake_case(colname) for colname in data.columns]
 
         data['return'] = data["adj_close"].pct_change()
+
+        # Remove the one record containing NaN in the "return" column
+        data = data.iloc[1:,]
 
         if(filter != None):
             return data[filter]
