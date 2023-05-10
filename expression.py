@@ -64,7 +64,9 @@ class Expression:
     # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
     # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
     # shows the period and interval that we can use with yfinance to get info on them
-    def get_simple_functions(self, str_expression):
+    def get_simple_functions(self, str_expression = None):
+        str_expression = str_expression if str_expression != None else self.expression
+
         simple_functions = {}
         for f in self.simple_functions:
             if(f in str_expression):
@@ -74,7 +76,9 @@ class Expression:
 
         return simple_functions
 
-    def get_matrix_functions(self, str_expression):
+    def get_matrix_functions(self, str_expression = None):
+        str_expression = str_expression if str_expression != None else self.expression
+
         matrix_functions = {}
         for f in self.matrix_functions:
             if(f in str_expression):
@@ -120,16 +124,21 @@ class Expression:
     # evaluate innermost functions first before we proceed with the outer ones
     # The function also accepts the number of arguments, which it uses to construct the
     # regex for extracting the innermost function
-    def get_innermost_functions(self, str_expression, arguments_count):
+    def get_innermost_functions(self, str_expression = None, min_arg_count=1, max_arg_count=3):
+        str_expression = str_expression if str_expression != None else self.expression
 
         # The ",\s*\w+" extracts a single argument. We want to be flexible with the
         # number of arguments we can extract. For instance, if we wnat to extract
         # an inner function that accepts two arguments, the regex for that will
         # be r"\w+\(\w+\s*,\s*\w+\)". That is what we are doing here
-        r = "".join([",\s*\w+\s*" for i in range(arguments_count-1)]) + r"\)"
-        regex = r"\w+\(\s*\w+\s*" + r
+        innermost_functions = []
 
-        return re.findall(regex, str_expression)
+        for arg_count in range(min_arg_count, max_arg_count+1):
+            r = "".join([",\s*\w+\s*" for i in range(arg_count)]) + r"\)"
+            regex = r"\w+\(\s*\w+\s*" + r
+            innermost_functions.extend(re.findall(regex, str_expression))
+
+        return innermost_functions 
     
     # Receives a string in the form "average(var1, var2, var3)" and returns "average"
     def get_function_name(self, expr):
@@ -137,10 +146,25 @@ class Expression:
         return re.findall(regex, expr)
     
     # Receives a string in the form "average(var1, var2, var3)" and returns [var1, var2, var3]
-    def get_arguments(self, expr, argument_count):
-        r = "".join([",\s*\w+\s*" for i in range(argument_count-1)]) + r"(?=\))"
-        regex = r"(?<=\()\s*\w+\s*" + r
-        
+    def get_arguments(self, expr):
+        return re.findall(r"(?<=\().+(?=\))", expr)[0].replace(" ", "").split(",")
+    
+    # Takes in an expression such as
+    # what(and, now, this, thes(whatever_what, aver_age(now, its, tough), inner(this, is, it) 1d))'
+    # and returns the functions in that expression. In this case, it will return ['what', 'thes', 'aver_age', 'inner']
+    def get_functions_used(self, expr = None):
+        expr = expr if expr != None else self.expression
+        regex = r"\w+(?=\()"
         return re.findall(regex, expr)
+    
+    def contains_non_simple_functions(self, expr):
+        functions_used = self.get_functions_used(expr)
+
+        for f in functions_used:
+            if f in self.matrix_functions or f in self.asset_functions:
+                return True
+            
+        return False
+
 
     
