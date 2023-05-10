@@ -3,7 +3,7 @@ from numericals import Numerical
 from sympy.parsing.sympy_parser import parse_expr
 
 class Expression:
-    def __init__(self, str_expression, variable_dict = {}, 
+    def __init__(self, str_expression, portfolio_assets = [], variable_dict = {}, 
                  period = "100d", interval="1d", time_zone = None, filter=None):
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
@@ -24,6 +24,12 @@ class Expression:
             "_mmult", "_transpose",
             "_return", "_volume", "_price"
         ]
+
+        # These functions are created by simply using the asset's name and quoting what
+        # value from that asset you want. For instance, you can write "_AAPL(return, 10d, 1d)"
+        # and you should get an array for the apple's return in the last ten days sampled daily
+        self.asset_functions = ["_"+i for i in portfolio_assets]
+
         
     def evaluate(self, str_expression=None, variable_dict = {}):
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
@@ -45,7 +51,7 @@ class Expression:
         f_expression_results = {}
         for f in simple_functions_used:
             for expression in simple_functions_used[f]:
-                val = self.__evaluate_asset_function(function_=f, expression=expression)
+                val = self.__evaluate_simple_function(function_=f, expression=expression)
                 f_expression_results[expression] = val
 
         for key in f_expression_results:
@@ -80,7 +86,7 @@ class Expression:
                 
     # Takes in simple_functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
     # and returns the solution to the expression also in string format
-    def __evaluate_asset_function(self, function_, expression):
+    def __evaluate_simple_function(self, function_, expression):
         f = function_
 
         # If an expression is like average(AAPL_return, 10d, 1m) I separate them such that
@@ -120,9 +126,21 @@ class Expression:
         # number of arguments we can extract. For instance, if we wnat to extract
         # an inner function that accepts two arguments, the regex for that will
         # be r"\w+\(\w+\s*,\s*\w+\)". That is what we are doing here
-        r = "".join([",\s*\w+\s*" for i in range(arguments_count-1)]) + "\)"
+        r = "".join([",\s*\w+\s*" for i in range(arguments_count-1)]) + r"\)"
         regex = r"\w+\(\s*\w+\s*" + r
 
         return re.findall(regex, str_expression)
+    
+    # Receives a string in the form "average(var1, var2, var3)" and returns "average"
+    def get_function_name(self, expr):
+        regex = r"\w+(?=\()"
+        return re.findall(regex, expr)
+    
+    # Receives a string in the form "average(var1, var2, var3)" and returns [var1, var2, var3]
+    def get_arguments(self, expr, argument_count):
+        r = "".join([",\s*\w+\s*" for i in range(argument_count-1)]) + r"(?=\))"
+        regex = r"(?<=\()\s*\w+\s*" + r
+        
+        return re.findall(regex, expr)
 
     
