@@ -34,7 +34,7 @@ class Expression:
     def evaluate(self, str_expression=None, variable_dict = {}):
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
         str_expression = self.expression if str_expression == None else str_expression
-    
+
         # This function returns an object of arrays in the form {average: [], min: []}.
         # The arrays, on the other hand, are in the form; 
         # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
@@ -57,7 +57,15 @@ class Expression:
         for key in f_expression_results:
             str_expression = str_expression.replace(key, str(f_expression_results[key]))
 
-        return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
+        # At this point, we have replaced all simple functions with values they evaluate to
+        # for instance, if the function is "_average(AAPL_return, 10d, 1d)", we have evaluated
+        # that and got the a values (e.g 10), for which we replace in the initial expression.
+        # If there are still some functions that return matrices, we deal with them in
+        # evaluate_complex_functions()
+        if self.contains_non_simple_functions():
+            return self.__parse_complex_expression(str_expression, variable_dict)
+        else:
+            return self.__parse_simple_expression(str_expression, variable_dict)
     
     # This function returns an object of arrays in the form {average: [], min: []}.
     # The arrays, on the other hand, are in the form; 
@@ -166,5 +174,10 @@ class Expression:
             
         return False
 
+    def __parse_simple_expression(self, str_expression, variable_dict):
+        return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
+    
+    def __parse_complex_expression(self, str_expression, variable_dict):
+        pass
 
     
