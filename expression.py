@@ -30,17 +30,15 @@ class Expression:
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
         str_expression = self.expression if str_expression == None else str_expression
 
-        # This function returns an object of arrays in the form {average: [], min: []}.
+        # This function returns an object of arrays in the form {__AAPL: [], min: []}.
         # The arrays, on the other hand, are in the form; 
-        # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
-        # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
-        # shows the period and interval that we can use with yfinance to get info on them
+        # ["_AAPL(return, 10d, 1d)", "_MSFT(return, 10d, 1d)"]
         simple_functions_used = self.get_simple_functions(str_expression)
 
         # Here, the f_expression_results will end up being in the form
-        # {average(AAPL_return, 10d, 1m): 100, max(MSFT_vol, 15d, 1m): 50000}
+        # {"_AAPL(return, 10d, 1d): 0.01, _MSFT(return, 10d, 1d): 0.03}
         # with the key values being in string. Since the initial expression is
-        # in string format (e.g x = "average(AAPL_return, 10d, 1m) + 10x + 60"),
+        # in string format (e.g x = "_MSFT(return, 10d, 1d) + 10x + 60"),
         # we can thus simply string replace these values with whatever we get from
         # f_expression_results below
         f_expression_results = {}
@@ -54,20 +52,19 @@ class Expression:
 
         # At this point, we have replaced all simple functions with values they evaluate to
         # for instance, if the function is "_AAPL(return, 10d, 1d)", we have evaluated
-        # that and got the a values (e.g 10), for which we replace in the initial expression.
+        # that and got the a values (e.g 0.1), for which we replace in the initial expression.
         # If there are still some functions that return matrices, we deal with them in
         # evaluate_complex_functions()
         non_simple_functions = self.get_functions_used(str_expression)
+
         if len(non_simple_functions) > 0:
             return self.__parse_complex_expression(str_expression, variable_dict)
         else:
             return self.__parse_simple_expression(str_expression, variable_dict)
     
-    # This function returns an object of arrays in the form {average: [], min: []}.
+    # This function returns an object of arrays in the form {__AAPL: [], min: []}.
     # The arrays, on the other hand, are in the form; 
-    # ["average(variable1, varable2, variable3)", "min(variable1, variable2, variable3)"]
-    # We expect variable1 to be the asset (e.g AAPL_return), while variable2 and variable3
-    # shows the period and interval that we can use with yfinance to get info on them
+    # ["_AAPL(return, 10d, 1d)", "_MSFT(return, 10d, 1d)"]
     def get_simple_functions(self, str_expression = None):
         str_expression = str_expression if str_expression != None else self.expression
 
@@ -145,8 +142,8 @@ class Expression:
         return re.findall(r"(?<=\().+(?=\))", expr)[0].replace(" ", "").split(",")
     
     # Takes in an expression such as
-    # what(and, now, this, thes(whatever_what, aver_age(now, its, tough), inner(this, is, it) 1d))'
-    # and returns the functions in that expression. In this case, it will return ['what', 'thes', 'aver_age', 'inner']
+    # "_mmult(_transpose(_AAPL(return, 10d, 1d) - _avg(_AAPL(return, 10d, 1d)), _AAPL(return, 10d, 1d) - _avg(_AAPL(return, 10d, 1d))"
+    # and returns all the functions in that expression. In this case, it will return ["_mmult", "_transpose", "_AAPL", "_avg"]
     def get_functions_used(self, expr = None):
         expr = expr if expr != None else self.expression
         regex = r"\w+(?=\()"
