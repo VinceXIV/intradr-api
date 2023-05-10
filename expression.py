@@ -9,16 +9,6 @@ class Expression:
         self.variable_dict = variable_dict
         self.expression = str_expression
 
-        # functions that are expected to come in the form
-        # <function name>(<asset_variable>, <period> <interval>)
-        # e.g "average(AAPL_portfolio, 10d, 1d)"
-        # I am calling them simple functions because they return a value.
-        # Like, if you call _average(AAPL_return, 10d, 1d), you will get
-        # value like 10
-        self.simple_functions = [
-            "_average", "_max", "_min", "_stdev"
-        ]
-
         # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
         self.matrix_functions = [
             "_mmult", "_transpose",
@@ -26,8 +16,13 @@ class Expression:
         ]
 
         # These functions are created by simply using the asset's name and quoting what
-        # value from that asset you want. For instance, you can write "_AAPL(return, 10d, 1d)"
-        # and you should get an array for the apple's return in the last ten days sampled daily
+        # value from that asset you want. They come in two flavors; three argument, and two 
+        # argument functions. the two variable one is considered "simple" as its evaluation
+        # returns a value. The three argument one is considered complex as its evaluation returns
+        # an array. An example of a complex asset function is "_AAPL(return, 10d, 1d)"
+        # which returns an array for the apple's return in the last ten days sampled daily.
+        # An example of a complex one is "_AAPL(price, 1d)", which returns apple's stock price one
+        # day ago
         self.asset_functions = ["_"+i for i in portfolio_assets]
 
         
@@ -58,11 +53,12 @@ class Expression:
             str_expression = str_expression.replace(key, str(f_expression_results[key]))
 
         # At this point, we have replaced all simple functions with values they evaluate to
-        # for instance, if the function is "_average(AAPL_return, 10d, 1d)", we have evaluated
+        # for instance, if the function is "_AAPL(return, 10d, 1d)", we have evaluated
         # that and got the a values (e.g 10), for which we replace in the initial expression.
         # If there are still some functions that return matrices, we deal with them in
         # evaluate_complex_functions()
-        if self.contains_non_simple_functions():
+        non_simple_functions = self.get_functions_used(str_expression)
+        if len(non_simple_functions) > 0:
             return self.__parse_complex_expression(str_expression, variable_dict)
         else:
             return self.__parse_simple_expression(str_expression, variable_dict)
@@ -76,11 +72,13 @@ class Expression:
         str_expression = str_expression if str_expression != None else self.expression
 
         simple_functions = {}
-        for f in self.simple_functions:
+        for f in self.asset_functions:
             if(f in str_expression):
-                regex = r"{f}\(\w+,\s*\w+,\s*\w+\)".format(f=f)
+                regex = r"{f}\(\s*\w+\s*,\s*\w+\s*\)".format(f=f)
                 
-                simple_functions[f] = re.findall(regex, str_expression)
+                available_functions = re.findall(regex, str_expression)
+                if(len(available_functions)):
+                    simple_functions[f] = available_functions 
 
         return simple_functions
 
@@ -104,24 +102,13 @@ class Expression:
         # If an expression is like average(AAPL_return, 10d, 1m) I separate them such that
         # I get ticker = AAPL, val = return, period = 10d, and interval = 1m
         variables = expression.replace(f+"(", "").replace(")", "").replace(" ", "").split(",")
-        ticker = variables[0].split("_")[0]
-        val = "_".join(variables[0].split("_")[1:])
+        ticker = function_.replace("_", "")
+        val = variables[0]
         period = variables[1]
-        interval = variables[2]
+        
+        historical_data = self.numerical.get_historical_data(ticker=ticker, period=period)
 
-        # This will return the historical data in same format as yfinance with specified period
-        # and interval. The "val" found above can be return, volume, etc
-        numerical = Numerical(period = period, interval=interval, time_zone = None, filter=val)
-        historical_data = numerical.get_historical_data(ticker = ticker)
-
-        if(f == "_average"):
-            return historical_data.mean()
-        elif(f == "_max"):
-            return historical_data.max()
-        elif(f == "_min"):
-            return historical_data.min()
-        elif(f == "_stdev"):
-            return historical_data.std()
+        return str(float(historical_data[val]))
     
     # This method accepts a string such as
     # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"

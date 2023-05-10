@@ -43,7 +43,6 @@ class Numerical:
         period_length = re.findall(r"[a-zA-Z]", period)[0]
         period =  period_count + period_length
 
-        print("period: ", period)
         data = yf.download(tickers=ticker, period=period, interval=interval)
         data = data.index.tz_convert(time_zone) if time_zone != None else data
         data.columns = [utility_functions.snake_case(colname) for colname in data.columns]
