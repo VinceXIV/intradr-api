@@ -3,13 +3,14 @@ import numpy as np
 import copy
 from numericals import Numerical
 from sympy.parsing.sympy_parser import parse_expr
+import expressiontree
 
 class Expression:
     def __init__(self, str_expression, portfolio_assets = [], variable_dict = {}, 
                  period = "100d", interval="1d", time_zone = None, filter=None):
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
-        self.expression = str_expression
+        self.expression = expressiontree.process_expression(str_expression)
 
         # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
         self.matrix_functions = [
