@@ -13,8 +13,7 @@ class Expression:
 
         # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
         self.matrix_functions = [
-            "_mmult", "_transpose",
-            "_return", "_volume", "_price"
+            "_mmult", "_transpose"
         ]
 
         # These functions are created by simply using the asset's name and quoting what
