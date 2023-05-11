@@ -162,6 +162,8 @@ class Expression:
         return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
     
     def __parse_complex_expression(self, str_expression, variable_dict):
-        pass
+        intermediate_solutions = {}
+        innermost_functions = self.get_innermost_functions(str_expression)
+        return str_expression
 
     
