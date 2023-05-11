@@ -35,7 +35,7 @@ class Expression:
         # This function returns an object of arrays in the form {__AAPL: [], min: []}.
         # The arrays, on the other hand, are in the form; 
         # ["_AAPL(return, 10d, 1d)", "_MSFT(return, 10d, 1d)"]
-        simple_functions_used = self.get_simple_functions(str_expression)
+        simple_functions_used = self.get_simple_asset_functions(str_expression)
 
         # Here, the f_expression_results will end up being in the form
         # {"_AAPL(return, 10d, 1d): 0.01, _MSFT(return, 10d, 1d): 0.03}
@@ -46,7 +46,7 @@ class Expression:
         f_expression_results = {}
         for f in simple_functions_used:
             for expression in simple_functions_used[f]:
-                val = self.__evaluate_simple_function(function_name=f, expression=expression)
+                val = self.__evaluate_simple_asset_function(function_name=f, expression=expression)
                 f_expression_results[expression] = val
 
         for key in f_expression_results:
@@ -67,7 +67,7 @@ class Expression:
     # This function returns an object of arrays in the form {__AAPL: [], min: []}.
     # The arrays, on the other hand, are in the form; 
     # ["_AAPL(return, 10d, 1d)", "_MSFT(return, 10d, 1d)"]
-    def get_simple_functions(self, str_expression = None):
+    def get_simple_asset_functions(self, str_expression = None):
         str_expression = str_expression if str_expression != None else self.expression
 
         simple_functions = {}
@@ -95,7 +95,7 @@ class Expression:
                 
     # Takes in simple_functions in the form "_AAPL(return, 1d)"
     # and returns the solution, which in this case is apple's return 1 day ago
-    def __evaluate_simple_function(self, function_name, expression):
+    def __evaluate_simple_asset_function(self, function_name, expression):
         f = function_name
 
         # If an expression is like _AAPL(return, 1d). I separate them such that
