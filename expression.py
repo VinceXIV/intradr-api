@@ -44,7 +44,7 @@ class Expression:
         f_expression_results = {}
         for f in simple_functions_used:
             for expression in simple_functions_used[f]:
-                val = self.__evaluate_simple_function(function_=f, expression=expression)
+                val = self.__evaluate_simple_function(function_name=f, expression=expression)
                 f_expression_results[expression] = val
 
         for key in f_expression_results:
@@ -93,13 +93,13 @@ class Expression:
                 
     # Takes in simple_functions in the form "_AAPL(return, 1d)"
     # and returns the solution, which in this case is apple's return 1 day ago
-    def __evaluate_simple_function(self, function_, expression):
-        f = function_
+    def __evaluate_simple_function(self, function_name, expression):
+        f = function_name
 
         # If an expression is like _AAPL(return, 1d). I separate them such that
         # I get ticker = AAPL, val = return, period = 10d, and interval = 1m
         variables = expression.replace(f+"(", "").replace(")", "").replace(" ", "").split(",")
-        ticker = function_.replace("_", "")
+        ticker = function_name.replace("_", "")
         val = variables[0]
         period = variables[1]
         
@@ -107,8 +107,8 @@ class Expression:
 
         return str(float(historical_data.iloc[0, :][val]))
     
-    def __evaluate_complex_function(self, function_, str_expression):
-        pass
+    def __evaluate_complex_function(self, function_name, str_expression):
+        print(function_name, str_expression)
     
     # This method accepts a string such as
     # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"
@@ -138,7 +138,7 @@ class Expression:
     # Receives a string in the form "average(var1, var2, var3)" and returns "average"
     def get_function_name(self, expr):
         regex = r"\w+(?=\()"
-        return re.findall(regex, expr)
+        return re.findall(regex, expr)[0]
     
     # Receives a string in the form "average(var1, var2, var3)" and returns [var1, var2, var3]
     def get_arguments(self, expr):
@@ -159,9 +159,10 @@ class Expression:
         intermediate_solutions = {}
         innermost_functions = self.get_innermost_functions(str_expression)
 
-        # for f in innermost_functions:
-        #     self.__evaluate_complex_function(function_=f, str_expression=innermost_functions[f])
+        for function_expression in innermost_functions:
+            function_name = self.get_function_name(function_expression)
+            self.__evaluate_complex_function(function_name=function_name, str_expression=function_expression)
 
-        return str_expression
+        return innermost_functions
 
     
