@@ -18,7 +18,7 @@ def get_ordered_operations(str_expr):
 
     return ordered_operations
 
-def get_operator(expr, expected_operator_count=1):
+def get_operators(expr, min_operators = 1, max_operators = 2):
     '''
     We are only expecting simple expressions here (e.g "x + y"). This function returns the operators
     in that expression. In the case of "x + y", it will return "+"
@@ -29,9 +29,9 @@ def get_operator(expr, expected_operator_count=1):
     for i in re.findall(pattern, expr):
         expr = expr.replace(i, "")
 
-    if(len(expr) != expected_operator_count):
+    if(len(expr) not in range(min_operators, max_operators)):
         raise ValueError(
-            "The expression contains {} operators. We expected {}".format(len(expr), expected_operator_count)
+            "The expression contains {} operators which is out of the expected range".format(len(expr))
         )
     return expr
 
@@ -41,7 +41,7 @@ def get_operants(expr):
     in that expression. In the case of "x + y", it will return ["x", "y"]
     '''
     expr = process_expression(expr)
-    operator = get_operator(expr=expr)
+    operator = get_operators(expr=expr)
 
     return expr.split(operator)
 
@@ -65,3 +65,7 @@ def process_expression(expr):
         raise ValueError("The expression contains invalid values")
     else:
         return re.sub(r' ', "", expr)
+
+# Returns true if the string is in the form "x + y" (the + can be a -, /, %, etc.) and false otherwise 
+def contains_operators(str_expression):
+    return len(get_operators(str_expression, 0, 2)) > 0
