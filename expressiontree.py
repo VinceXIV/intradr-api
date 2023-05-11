@@ -18,7 +18,7 @@ def get_ordered_operations(str_expr):
 
     return ordered_operations
 
-def get_operator(expr):
+def get_operator(expr, expected_operator_count=1):
     '''
     We are only expecting simple expressions here (e.g "x + y"). This function returns the operators
     in that expression. In the case of "x + y", it will return "+"
@@ -29,9 +29,9 @@ def get_operator(expr):
     for i in re.findall(pattern, expr):
         expr = expr.replace(i, "")
 
-    if(len(expr) > 1):
+    if(len(expr) != expected_operator_count):
         raise ValueError(
-            "Please use simple expression that only has one operator. An example is 'a + b'"
+            "The expression contains {} operators. We expected {}".format(len(expr), expected_operator_count)
         )
     return expr
 
