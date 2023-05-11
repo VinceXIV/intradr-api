@@ -9,7 +9,7 @@ def get_ordered_operations(str_expr):
     '''
     parsed_str = parse_expr(str_expr, evaluate=False, transformations="all")
 
-    operators = r'([+\-*/%^=(){}\[\]]|\*\*)'
+    operators = r'([+\-*/%^(){}\[\]]|\*\*)'
 
     ordered_operations = []
     for ar in postorder_traversal(parsed_str):
@@ -17,3 +17,50 @@ def get_ordered_operations(str_expr):
             ordered_operations.append(str(ar))
 
     return ordered_operations
+
+def get_operator(expr):
+    '''
+    We are only expecting simple expressions here (e.g "x + y"). This function returns the operators
+    in that expression. In the case of "x + y", it will return "+"
+    '''
+
+    expr = process_expression(expr)
+    pattern = r'(\w+)'
+    for i in re.findall(pattern, expr):
+        expr = expr.replace(i, "")
+
+    return expr
+
+def get_operants(expr):
+    '''
+    We are only expecting simple expressions here (e.g "x + y"). This function returns the operants
+    in that expression. In the case of "x + y", it will return ["x", "y"]
+    '''
+    expr = process_expression(expr)
+    operator = get_operator(expr=expr)
+
+    return expr.split(operator)
+
+def process_expression(expr):
+    '''
+    Removes spaces and non alpha
+    '''
+
+    if(len(re.findall('\*{3,}', expr)) > 0):
+        print(re.findall('\*{3,}', expr))
+        # This will be raised if an expression contains more than 2 * e.g (y *** 3)
+        raise ValueError("The expression contains invalid values")  
+    elif(len(re.findall(r'([+\-/%^{}\[\]])', expr)) > 1):
+        print(re.findall(r'([+\-/%^{}\[\]])', expr))
+        raise ValueError("The expression contains more than one operator")
+    elif(len(re.findall(r'\w+\s+\w+', expr))):
+        print(re.findall(r'\w+\s+\w+', expr))
+        raise ValueError("The expression contains operants with no operator")
+    elif(len(re.findall(r'([^+\-*/%^{}\(\)\[\]\w\s])', expr)) > 0):
+        print(re.findall(r'([^+\-*/%^{}\(\)\[\]\w\s])', expr))
+        # This can be raised when a user calls this method with "X & Y"
+        # This error is raised because & is neither considered a math operator
+        # nor a valid operant
+        raise ValueError("The expression contains invalid values")
+    else:
+        return re.sub(r' ', "", expr)
