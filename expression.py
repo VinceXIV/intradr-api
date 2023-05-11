@@ -173,24 +173,24 @@ class Expression:
         intermediate_solutions = {}
         innermost_functions = self.get_innermost_functions(expr)
 
-        for function_expression in innermost_functions:
+        for function_expression, i in zip(innermost_functions, range(len(innermost_functions))):
             function_name = self.get_function_name(function_expression)
             result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions)
 
-            results_id = self.__get_intermediate_results_id(expr)
+            results_id = self.__get_intermediate_results_id(str_expression=str_expression, append=i)
             intermediate_solutions[results_id] = result
             expr = expr.replace(function_expression, results_id)
 
         print(expr)
         return expr
     
-    def __get_intermediate_results_id(self, str_expression):
+    def __get_intermediate_results_id(self, str_expression, append):
         '''
         Takes in an expression such as "_AAPL(return, 5d) + _AAPL(return, 10d, 1d)" and returns
         "AAPLreturn5dAAPLreturn10d1d"
         '''
         pattern = r'[^\w]|_'
-        results_id = re.sub(pattern, "", str_expression)
+        results_id = re.sub(pattern, "", str_expression) + "_" + str(append)
 
         return results_id
 
