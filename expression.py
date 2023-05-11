@@ -10,7 +10,7 @@ class Expression:
                  period = "100d", interval="1d", time_zone = None, filter=None):
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
-        self.expression = expressiontree.process_expression(str_expression)
+        self.expression = str_expression
 
         # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
         self.matrix_functions = [
@@ -117,10 +117,13 @@ class Expression:
             period = variables[1]   
             interval = variables[2]    
 
-            historical_data = self.numerical.get_historical_data(ticker=ticker, period=period)
-       
+            historical_data = self.numerical.get_historical_data(ticker, period, interval)
             return np.matrix(list(historical_data[val]))
-
+        else:
+            function_arguments = self.get_function_arguments(str_expression)
+            print(function_arguments)
+            return 0
+       
 
     
     # This method accepts a string such as
@@ -154,7 +157,7 @@ class Expression:
         return re.findall(regex, expr)[0]
     
     # Receives a string in the form "average(var1, var2, var3)" and returns [var1, var2, var3]
-    def get_arguments(self, expr):
+    def get_function_arguments(self, expr):
         return re.findall(r"(?<=\().+(?=\))", expr)[0].replace(" ", "").split(",")
     
     # Takes in an expression such as
@@ -177,9 +180,10 @@ class Expression:
             function_name = self.get_function_name(function_expression)
             result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions)
 
-            results_id = self.__get_intermediate_results_id(str_expression=str_expression, append=i)
+            results_id = self.__get_intermediate_results_id(str_expression=function_expression, append=i)
             intermediate_solutions[results_id] = result
             expr = expr.replace(function_expression, results_id)
+            print(i)
 
         print(expr)
         return expr
