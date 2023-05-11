@@ -91,12 +91,12 @@ class Expression:
 
         return matrix_functions
                 
-    # Takes in simple_functions in the form "average(AAPL_return, 10d, 1m)" (**it is in string format**)
-    # and returns the solution to the expression also in string format
+    # Takes in simple_functions in the form "_AAPL(return, 1d)"
+    # and returns the solution, which in this case is apple's return 1 day ago
     def __evaluate_simple_function(self, function_, expression):
         f = function_
 
-        # If an expression is like average(AAPL_return, 10d, 1m) I separate them such that
+        # If an expression is like _AAPL(return, 1d). I separate them such that
         # I get ticker = AAPL, val = return, period = 10d, and interval = 1m
         variables = expression.replace(f+"(", "").replace(")", "").replace(" ", "").split(",")
         ticker = function_.replace("_", "")
