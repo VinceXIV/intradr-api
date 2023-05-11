@@ -29,6 +29,10 @@ def get_operator(expr):
     for i in re.findall(pattern, expr):
         expr = expr.replace(i, "")
 
+    if(len(expr) > 1):
+        raise ValueError(
+            "Please use simple expression that only has one operator. An example is 'a + b'"
+        )
     return expr
 
 def get_operants(expr):
@@ -50,9 +54,6 @@ def process_expression(expr):
         print(re.findall('\*{3,}', expr))
         # This will be raised if an expression contains more than 2 * e.g (y *** 3)
         raise ValueError("The expression contains invalid values")  
-    elif(len(re.findall(r'([+\-/%^{}\[\]])', expr)) > 1):
-        print(re.findall(r'([+\-/%^{}\[\]])', expr))
-        raise ValueError("The expression contains more than one operator")
     elif(len(re.findall(r'\w+\s+\w+', expr))):
         print(re.findall(r'\w+\s+\w+', expr))
         raise ValueError("The expression contains operants with no operator")
