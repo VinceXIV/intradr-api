@@ -105,13 +105,16 @@ class Expression:
         
         historical_data = self.numerical.get_historical_data(ticker=ticker, period=period)
 
-        return str(float(historical_data[val]))
+        return str(float(historical_data.iloc[0, :][val]))
+    
+    def __evaluate_complex_function(self, function_, str_expression):
+        pass
     
     # This method accepts a string such as
     # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"
     # in string format and returns the innermost function, which in this case is
     # "_transpose(_Portfolio_weights)". The return will be of array type (we may have multiple
-    # inner functions) so effectively. So our return from above will be ["_transpose(_Portfolio_weights)"]
+    # inner functions) so effectively our return from above will be ["_transpose(_Portfolio_weights)"]
     # We want to do this because in such a nested case, we want to
     # evaluate innermost functions first before we proceed with the outer ones
     # The function also accepts the number of arguments, which it uses to construct the
@@ -155,6 +158,10 @@ class Expression:
     def __parse_complex_expression(self, str_expression, variable_dict):
         intermediate_solutions = {}
         innermost_functions = self.get_innermost_functions(str_expression)
+
+        # for f in innermost_functions:
+        #     self.__evaluate_complex_function(function_=f, str_expression=innermost_functions[f])
+
         return str_expression
 
     
