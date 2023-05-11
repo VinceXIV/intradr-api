@@ -1,4 +1,6 @@
 import re
+import numpy as np
+import copy
 from numericals import Numerical
 from sympy.parsing.sympy_parser import parse_expr
 
@@ -107,8 +109,19 @@ class Expression:
 
         return str(float(historical_data.iloc[0, :][val]))
     
-    def __evaluate_complex_function(self, function_name, str_expression):
-        print(function_name, str_expression)
+    def __evaluate_complex_function(self, function_name, str_expression, variable_dict={}):
+        if function_name in self.asset_functions:
+            variables = str_expression.replace(function_name+"(", "").replace(")", "").replace(" ", "").split(",")
+            ticker = function_name.replace("_", "")
+            val = variables[0]
+            period = variables[1]   
+            interval = variables[2]    
+
+            historical_data = self.numerical.get_historical_data(ticker=ticker, period=period)
+       
+            return np.matrix(list(historical_data[val]))
+
+
     
     # This method accepts a string such as
     # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"
@@ -156,13 +169,30 @@ class Expression:
         return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
     
     def __parse_complex_expression(self, str_expression, variable_dict):
+        expr = copy.deepcopy(str_expression)
         intermediate_solutions = {}
-        innermost_functions = self.get_innermost_functions(str_expression)
+        innermost_functions = self.get_innermost_functions(expr)
 
         for function_expression in innermost_functions:
             function_name = self.get_function_name(function_expression)
-            self.__evaluate_complex_function(function_name=function_name, str_expression=function_expression)
+            result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions)
 
-        return innermost_functions
+            results_id = self.__get_intermediate_results_id(expr)
+            intermediate_solutions[results_id] = result
+            expr = expr.replace(function_expression, results_id)
+
+        print(expr)
+        return expr
+    
+    def __get_intermediate_results_id(self, str_expression):
+        '''
+        Takes in an expression such as "_AAPL(return, 5d) + _AAPL(return, 10d, 1d)" and returns
+        "AAPLreturn5dAAPLreturn10d1d"
+        '''
+        pattern = r'[^\w]|_'
+        results_id = re.sub(pattern, "", str_expression)
+
+        return results_id
+
 
     
