@@ -148,15 +148,6 @@ class Expression:
         expr = expr if expr != None else self.expression
         regex = r"\w+(?=\()"
         return re.findall(regex, expr)
-    
-    def contains_non_simple_functions(self, expr):
-        functions_used = self.get_functions_used(expr)
-
-        for f in functions_used:
-            if f in self.matrix_functions or f in self.asset_functions:
-                return True
-            
-        return False
 
     def __parse_simple_expression(self, str_expression, variable_dict):
         return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
