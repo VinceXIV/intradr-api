@@ -19,10 +19,12 @@ class Asset:
     def get(self):
         return self.info
     
-    # Takes in a name (e.g micros) and returns the name of the company
-    # that matches that the most. It is used for searching company
-    # tickers using their names
     def find(self, asset_name=None, market=None, index=None):
+        '''
+        Takes in a name (e.g micros) and returns the name of the company
+        that matches that the most. It is used for searching company
+        tickers using their names
+        '''
         market = market if market != None else self.market
         index = index if index != None else self.index
 
