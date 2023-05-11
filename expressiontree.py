@@ -69,3 +69,11 @@ def process_expression(expr):
 # Returns true if the string is in the form "x + y" (the + can be a -, /, %, etc.) and false otherwise 
 def contains_operators(str_expression):
     return len(get_operators(str_expression, 0, 2)) > 0
+
+def solve_expression(expr, variable_dict):
+    ordered_operations = get_ordered_operations(expr)
+
+    for operation in ordered_operations:
+        # I want to be able to solve an expression containing as much as 10 operators
+        # e.g "x + 10 + y + j + abc + blahblahblah..."
+        operator = get_operators(expr, min_operators = 1, max_operators = 10)
