@@ -2,9 +2,11 @@ import re
 import numpy as np
 import copy
 from numericals import Numerical
-from sympy.parsing.sympy_parser import parse_expr
+from sympy.parsing.sympy_parser import parse_expr, T
 from sympy import Matrix
 import expressiontree
+import matrixfunctions
+
 
 class Expression:
     def __init__(self, str_expression, portfolio_assets = [], variable_dict = {}, 
@@ -122,14 +124,23 @@ class Expression:
             return Matrix(list(historical_data[val]))
         else:
             function_arguments = self.get_function_arguments(str_expression)
+            f_name = self.get_function_name(str_expression)
             
+            f_arguments = []
             for f_argument in function_arguments:
+                # The argument is an expression. This can occur if we call the function as follows
+                # <function name>(a + b + c, d). We would want to solve for "a + b + c" and then call
+                # the function with the solution. Assuming the solution is; x = a + b + c, we can then
+                # call the function <function name>(x, d)
                 if(expressiontree.contains_operators(f_argument)):
                     expression_solution = expressiontree.solve_expression(f_argument, variable_dict)
-            return 0
-       
+                    f_arguments.append(expression_solution)
+                else:
+                    f_arguments.append(f_argument)
 
-    
+            return matrixfunctions.call(function_name=f_name, argument_array=f_arguments, variable_dict=variable_dict)
+       
+   
     # This method accepts a string such as
     # "_mmult(_mmult(_transpose(Portfolio_weights), Portfolio_return), Portfolio_weights)"
     # in string format and returns the innermost function, which in this case is
@@ -139,7 +150,7 @@ class Expression:
     # evaluate innermost functions first before we proceed with the outer ones
     # The function also accepts the number of arguments, which it uses to construct the
     # regex for extracting the innermost function
-    def get_innermost_functions(self, str_expression = None, min_arg_count=1, max_arg_count=3):
+    def get_innermost_functions(self, str_expression = None, min_arg_count=0, max_arg_count=3):
         str_expression = str_expression if str_expression != None else self.expression
 
         # The ",\s*\w+" extracts a single argument. We want to be flexible with the
@@ -173,22 +184,30 @@ class Expression:
         return re.findall(regex, expr)
 
     def __parse_simple_expression(self, str_expression, variable_dict):
-        return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations="all"))
+        return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations=T[:11]))
     
     def __parse_complex_expression(self, str_expression, variable_dict):
         expr = copy.deepcopy(str_expression)
-        intermediate_solutions = {}
+        intermediate_solutions = variable_dict
         innermost_functions = self.get_innermost_functions(expr)
 
-        for function_expression, i in zip(innermost_functions, range(len(innermost_functions))):
-            function_name = self.get_function_name(function_expression)
-            result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions)
+        while len(innermost_functions) > 0:
+            for function_expression, i in zip(innermost_functions, range(len(innermost_functions))):
+                function_name = self.get_function_name(function_expression)
+                result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions)
 
-            results_id = self.__get_intermediate_results_id(str_expression=function_expression, append=i)
-            intermediate_solutions[results_id] = result
-            expr = expr.replace(function_expression, results_id)
-        print(intermediate_solutions)
-        return expr
+                # We are giving it an id so we could turn expression that would look like this
+                # "x + Matrix([1, 2, 3]) + y" into something that looks like; "x + AAPLreturn5dAAPLreturn10d1d_1 + y".
+                # We do this so that when we call get_innermost_function(), it doesn't return Matrix([1, 2, 3]).
+                # We already consider this a solved e xpression since it can be handled by sympy. We only want to get
+                # our custom-made functions when we call get_innermost_function()
+                results_id = self.__get_intermediate_results_id(str_expression=function_expression, append=i)
+                intermediate_solutions[results_id] = result
+                expr = expr.replace(function_expression, results_id)
+
+            innermost_functions= self.get_innermost_functions(expr)
+
+        return expressiontree.solve_expression(expr=expr, variable_dict=intermediate_solutions)
     
     def __get_intermediate_results_id(self, str_expression, append):
         '''
