@@ -1,4 +1,5 @@
 from sympy import parse_expr, postorder_traversal, Matrix
+import copy
 import re
 
 def get_ordered_operations(str_expr):
@@ -71,40 +72,12 @@ def contains_operators(str_expression):
     return len(get_operators(str_expression, 0, 2)) > 0
 
 def solve_expression(expr, variable_dict):
+    modified_expression = copy.deepcopy(expr)
+    for key in variable_dict:
+        if key in expr:
+            modified_expression = modified_expression.replace(key, str(variable_dict[key]))
 
-    # ordered operations is in the form ['x**2', '3*x**2', 'AAPLreturn10d1d_0 + 3*x**2']
-    # (This has been obtained from the expression "3x^2 + AAPLreturn10d1d_0" if you are
-    # curious). It simply means when solving that expression, we should start by solving
-    # "x**2" then solve for "3*x**2" (we substitute the "x**2" with solution we found
-    # earlier), and we continue doing that until everything is done
-    ordered_operations = get_ordered_operations(expr)
-
-    previous_operation = ""
-    previous_results = None
-    for operation, i in zip(ordered_operations, len(ordered_operations)):
-        # We only want to use letters when referencing variables. We are doing this because
-        # the functions we are using here such as "get_operators()", and "get_operands()" expect
-        # us to have only one operator by default. We don't want to change this since we are
-        # solving one expression at a time. In the expression ['x**2', '3*x**2', 'AAPLreturn10d1d_0 + 3*x**2']
-        # for instance, in the second round, we will have already solved for "x**2". It makes sense to give it
-        # an alias that is only made up of letters so when we move to the next part, which is "3*x**2", we can
-        # rewrite it using that alias. An example would be "3*abracadabra", where abracadabra = x**2
-        replacement_value = get_replacement_value(str_expression=expr, append=i)
-        operation_expr = operation.replace(previous_operation, replacement_value)
-
-        variable_dict[replacement_value] = previous_results
-
-        # I want to be able to solve an expression containing as much as 10 operators
-        # e.g "x + 10 + y + j + abc + blahblahblah..."
-        operator = get_operators(operation_expr, min_operators = 1, max_operators = 10)
-        operand1, operand2 = get_operands(operation_expr)
-        operand1, operand2 = matricize_operands(operand1, operand2, operator, variable_dict)
-        results = parse_expr("{operand1}{operator}{operand2}".format(operand1, operator, operand2))
-
-        previous_results = results
-        previous_operation = operation
-
-    return previous_operation
+    return parse_expr(modified_expression, evaluate=True, transformations="all")
       
 
 def matricize_operands(operand1, operand2, operator, variable_dict):
