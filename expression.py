@@ -125,7 +125,7 @@ class Expression:
             
             for f_argument in function_arguments:
                 if(expressiontree.contains_operators(f_argument)):
-                    expression_solution = expressiontree.solve_expression(f_argument)
+                    expression_solution = expressiontree.solve_expression(f_argument, variable_dict)
             return 0
        
 
