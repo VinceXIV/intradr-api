@@ -187,13 +187,13 @@ class Expression:
             results_id = self.__get_intermediate_results_id(str_expression=function_expression, append=i)
             intermediate_solutions[results_id] = result
             expr = expr.replace(function_expression, results_id)
-
+        print(intermediate_solutions)
         return expr
     
     def __get_intermediate_results_id(self, str_expression, append):
         '''
         Takes in an expression such as "_AAPL(return, 5d) + _AAPL(return, 10d, 1d)" and returns
-        "AAPLreturn5dAAPLreturn10d1d"
+        "AAPLreturn5dAAPLreturn10d1d_1" assuming append = 1
         '''
         pattern = r'[^\w]|_'
         results_id = re.sub(pattern, "", str_expression) + "_" + str(append)
