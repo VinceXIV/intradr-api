@@ -1,4 +1,5 @@
 from sympy import parse_expr, postorder_traversal, Matrix
+from sympy.parsing.sympy_parser import T
 import copy
 import re
 
@@ -77,7 +78,7 @@ def solve_expression(expr, variable_dict):
         if key in expr:
             modified_expression = modified_expression.replace(key, str(variable_dict[key]))
 
-    return parse_expr(modified_expression, evaluate=True, transformations="all")
+    return parse_expr(modified_expression, evaluate=True, transformations=T[:11])
       
 
 def matricize_operands(operand1, operand2, operator, variable_dict):
