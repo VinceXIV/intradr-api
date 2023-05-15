@@ -1,11 +1,27 @@
 from expression import Expression
 from expressiontree import clean_expression
+import pandas as pd
+import mpld3
+import matplotlib.pyplot as plt
 
-def graph(expression_array, assets, backdate_period):
-    values = get_graph_values(expression_array, assets, backdate_period)
-    return values
+def graph(graph, variables, expression_array, assets, backdate_period=30, figsize=(9, 4)):
+    df = get_value_df(expression_array, assets, backdate_period)
 
-def get_graph_values(expression_array, assets, backdate_period):
+    fig = plt.figure(figsize = figsize)
+    if(graph == "line"):
+        for v in variables:
+            print(v)
+            print(df.index)
+            plt.plot(df.index, df[v])
+
+    html_str = mpld3.fig_to_html(fig)
+    # Html_file= open("graph.html","w")
+    # Html_file.write(html_str)
+    # Html_file.close()
+    return html_str
+    
+
+def get_value_df(expression_array, assets, backdate_period):
 
     values = {}
     for b in range(backdate_period):
@@ -29,11 +45,9 @@ def get_graph_values(expression_array, assets, backdate_period):
                 error_list.append({"error": "SyntaxError", "details": "{} is an invalid expression".format(expression)})
                 continue
 
-            print(b)
-            print(expression)
             solution = expr.evaluate()
 
             if("MutableDenseMatrix" not in str(type(solution))):
                 values[b][var] = solution
 
-    return values
+    return pd.DataFrame(values).transpose()
