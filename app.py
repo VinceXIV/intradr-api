@@ -3,8 +3,8 @@ from flask_cors import CORS, cross_origin
 from stocksymbol import StockSymbol
 from ssm import *
 from expression import Expression
-
-
+from expressiontree import clean_expression
+import numpy as np
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -25,11 +25,12 @@ def index():
 @app.route('/evaluate', methods=['POST'])
 @cross_origin(support_credentials=True)
 def evaluate():
-    expression_array = request.args['expression_array']
-    assets = request.args['assets']
+    expression_array = request.get_json()['expression_array']
+    assets = request.get_json()['assets']
 
     variable_dict = {}
     error_list = []
+    results = []
     for var_expression in expression_array:
         var = ""
         expression = ""
@@ -37,6 +38,7 @@ def evaluate():
 
         try:
             var, expression = var_expression.split("=")
+            var = clean_expression(var)
         except ValueError:
             error_list.append({"error": "ValueError", "details": "expected {} to be in the form x = <some expression>".format(var_expression)})
             continue
@@ -45,11 +47,16 @@ def evaluate():
         except SyntaxError:
             error_list.append({"error": "SyntaxError", "details": "{} is an invalid expression".format(expression)})
             continue
-
+        
         intermediate_solution = expr.evaluate()
         variable_dict[var] = intermediate_solution
 
-    return jsonify({"results": variable_dict, "errors": error_list})
+        if("MutableDenseMatrix" in str(type(intermediate_solution))):
+            results.append({"name": var, "value": str(np.array(intermediate_solution).tolist())})
+        else:
+            results.append({"name": var, "value": str(intermediate_solution)})
+
+    return jsonify({"results": results, "errors": error_list})
 
 
 if __name__ == "__main__":
