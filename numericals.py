@@ -26,36 +26,32 @@ class Numerical:
 
         return numeric_info
 
-    def get_historical_data(self, ticker, period = None, interval=None, time_zone = None, filter=None):
-
-        if(type(ticker) != str):
-            raise("Sorry, we only process one ticker at a time, and thus expect a string for the ticker argument")
-        
+    def get_historical_data(self, ticker, period = None, interval=None, time_zone = None, filter=None, backdate=0):
         period = period if period != None else self.period
         interval = interval if interval != None else self.interval
         time_zone = time_zone if time_zone != None else self.time_zone
         filter = filter if filter != None else self.filter
 
-        # Add 1 to the period. For instance, if the period is 1d, add one so it becomes 2d
-        # we are doing this because when calculating daily return, the first value will be NaN
-        # and we don't want that NaN in our dataframe
-        period_count = str(int(re.findall(r"\d+", period)[0])+1)
-        period_length = re.findall(r"[a-zA-Z]", period)[0]
-        period =  period_count + period_length
+        if(type(ticker) != str):
+            raise("Sorry, we only process one ticker at a time, and thus expect a string for the ticker argument")
+        
+        if(backdate == 0):
+            return self.__get_historical_data(ticker, period, interval, time_zone, filter)
+        elif(backdate > 0):
+            # backdating means returning results assuming we are running the script n number of days ago. 
+            # if backdate = 10, it means we are running this function 10 days ago.
+            old_period_count = int(re.findall(r"\d+", period)[0])
+            period_count = str(old_period_count + backdate)
+            period_length = re.findall(r"[a-zA-Z]", period)[0]
+            new_period =  period_count + period_length
 
-        data = yf.download(tickers=ticker, period=period, interval=interval)
-        data = data.index.tz_convert(time_zone) if time_zone != None else data
-        data.columns = [utility_functions.snake_case(colname) for colname in data.columns]
+            historical_data = self.__get_historical_data(ticker, new_period, interval, time_zone, filter)
+            if(interval == None):
+                return historical_data
+            else:
+                return historical_data.iloc[:old_period_count, :]
+        
 
-        data['return'] = data["adj_close"].pct_change()
-
-        # Remove the one record containing NaN in the "return" column
-        data = data.iloc[1:,]
-
-        if(filter != None):
-            return data[filter]
-        else:
-            return data
     
     def summarize_historical_data(self, ticker, period = None, interval=None, time_zone = None, filter=None):
         ticker_info = {
@@ -78,5 +74,27 @@ class Numerical:
             ticker_info["stdev_" + field_name_snake_cased] = data_stdev[field]
 
             return ticker_info
+        
+    def __get_historical_data(self, ticker, period, interval, time_zone, filter):
+        # Add 1 to the period. For instance, if the period is 1d, add one so it becomes 2d
+        # we are doing this because when calculating daily return, the first value will be NaN
+        # and we don't want that NaN in our dataframe
+        period_count = str(int(re.findall(r"\d+", period)[0])+1)
+        period_length = re.findall(r"[a-zA-Z]", period)[0]
+        period =  period_count + period_length
+
+        data = yf.download(tickers=ticker, period=period, interval=interval)
+        data = data.index.tz_convert(time_zone) if time_zone != None else data
+        data.columns = [utility_functions.snake_case(colname) for colname in data.columns]
+
+        data['return'] = data["adj_close"].pct_change()
+
+        # Remove the one record containing NaN in the "return" column
+        data = data.iloc[1:,]
+
+        if(filter != None):
+            return data[filter]
+        else:
+            return data
 
         

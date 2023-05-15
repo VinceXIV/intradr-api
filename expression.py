@@ -10,10 +10,11 @@ import matrixfunctions
 
 class Expression:
     def __init__(self, str_expression, assets = [], variable_dict = {}, 
-                 period = "100d", interval="1d", time_zone = None, filter=None):
+                 period = "100d", interval="1d", time_zone = None, filter=None, backdate=None):
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
         self.expression = str_expression
+        self.backdate = 0 if backdate == None else backdate
 
         # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
         self.matrix_functions = [
@@ -31,9 +32,10 @@ class Expression:
         self.asset_functions = ["_"+i for i in assets]
 
         
-    def evaluate(self, str_expression=None, variable_dict = {}):
+    def evaluate(self, str_expression=None, variable_dict = {}, backdate=None):
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
         str_expression = self.expression if str_expression == None else str_expression
+        backdate = self.backdate if backdate == None else backdate
 
         # This function returns an object of arrays in the form {__AAPL: [], min: []}.
         # The arrays, on the other hand, are in the form; 
@@ -49,7 +51,7 @@ class Expression:
         f_expression_results = {}
         for f in simple_functions_used:
             for expression in simple_functions_used[f]:
-                val = self.__evaluate_simple_asset_function(function_name=f, expression=expression)
+                val = self.__evaluate_simple_asset_function(function_name=f, expression=expression, backdate=backdate)
                 f_expression_results[expression] = val
 
         for key in f_expression_results:
@@ -63,7 +65,7 @@ class Expression:
         non_simple_functions = self.get_functions_used(str_expression)
 
         if len(non_simple_functions) > 0:
-            return self.__parse_complex_expression(str_expression, variable_dict)
+            return self.__parse_complex_expression(str_expression, variable_dict, backdate)
         else:
             return self.__parse_simple_expression(str_expression, variable_dict)
     
@@ -98,7 +100,7 @@ class Expression:
                 
     # Takes in simple_functions in the form "_AAPL(return, 1d)"
     # and returns the solution, which in this case is apple's return 1 day ago
-    def __evaluate_simple_asset_function(self, function_name, expression):
+    def __evaluate_simple_asset_function(self, function_name, expression, backdate=0):
         f = function_name
 
         # If an expression is like _AAPL(return, 1d). I separate them such that
@@ -108,11 +110,11 @@ class Expression:
         val = variables[0]
         period = variables[1]
         
-        historical_data = self.numerical.get_historical_data(ticker=ticker, period=period)
+        historical_data = self.numerical.get_historical_data(ticker=ticker, period=period, backdate=backdate)
 
         return str(float(historical_data.iloc[0, :][val]))
     
-    def __evaluate_complex_function(self, function_name, str_expression, variable_dict={}):
+    def __evaluate_complex_function(self, function_name, str_expression, variable_dict={}, backdate=0):
         if function_name in self.asset_functions:
             variables = str_expression.replace(function_name+"(", "").replace(")", "").replace(" ", "").split(",")
             ticker = function_name.replace("_", "")
@@ -120,7 +122,7 @@ class Expression:
             period = variables[1]   
             interval = variables[2]    
 
-            historical_data = self.numerical.get_historical_data(ticker, period, interval)
+            historical_data = self.numerical.get_historical_data(ticker=ticker, period=period, interval=interval, backdate=backdate)
             return Matrix(list(historical_data[val]))
         else:
             function_arguments = self.get_function_arguments(str_expression)
@@ -186,7 +188,7 @@ class Expression:
     def __parse_simple_expression(self, str_expression, variable_dict):
         return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations=T[:11]))
     
-    def __parse_complex_expression(self, str_expression, variable_dict):
+    def __parse_complex_expression(self, str_expression, variable_dict, backdate=0):
         expr = copy.deepcopy(str_expression)
         intermediate_solutions = variable_dict
         innermost_functions = self.get_innermost_functions(expr)
@@ -194,7 +196,7 @@ class Expression:
         while len(innermost_functions) > 0:
             for function_expression, i in zip(innermost_functions, range(len(innermost_functions))):
                 function_name = self.get_function_name(function_expression)
-                result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions)
+                result = self.__evaluate_complex_function(function_name, function_expression, intermediate_solutions, backdate)
 
                 # We are giving it an id so we could turn expression that would look like this
                 # "x + Matrix([1, 2, 3]) + y" into something that looks like; "x + AAPLreturn5dAAPLreturn10d1d_1 + y".
