@@ -11,8 +11,6 @@ def get_ordered_operations(str_expr):
     '''
     parsed_str = parse_expr(str_expr, evaluate=False, transformations="all")
 
-    operators = r'([+\-*/%^(){}\[\]]|\*\*)'
-
     ordered_operations = []
     for ar in postorder_traversal(parsed_str):
         if(len(re.findall(r'\w+', str(ar))) > 1):
@@ -49,7 +47,7 @@ def get_operands(expr):
 
 def clean_expression(expr):
     '''
-    Removes spaces and non alpha
+    Removes spaces and also checks whether the expression makes sense
     '''
 
     if(len(re.findall('\*{3,}', expr)) > 0):
@@ -58,12 +56,13 @@ def clean_expression(expr):
         raise ValueError("The expression contains invalid values")  
     elif(len(re.findall(r'\w+\s+\w+', expr))):
         print(re.findall(r'\w+\s+\w+', expr))
-        raise ValueError("The expression contains operants with no operator")
-    elif(len(re.findall(r'([^+\-*/%^{}\(\)\[\]\w\s])', expr)) > 0):
-        print(re.findall(r'([^+\-*/%^{}\(\)\[\]\w\s])', expr))
+        # This will be raised when a user passes in an expression such as "2 y"
+        raise ValueError("The expression contains operands with no operator")
+    elif(len(re.findall(r'([^+\-.*/%^{}\(\)\[\]\w\s])', expr)) > 0):
+        print(re.findall(r'([^+\-.*/%^{}\(\)\[\]\w\s])', expr))
         # This can be raised when a user calls this method with "X & Y"
         # This error is raised because & is neither considered a math operator
-        # nor a valid operant
+        # nor a valid operand in our app
         raise ValueError("The expression contains invalid values")
     else:
         return re.sub(r' ', "", expr)
@@ -82,12 +81,14 @@ def solve_expression(expr, variable_dict):
       
 
 def matricize_operands(operand1, operand2, operator, variable_dict):
-    # operands in variable_dict are matrics. We are checking to determine how to process
-    # when one is a matrix and another one not, or when both are or are not matrics
+    # operands in variable_dict are matrices. We are checking to determine how to process
+    # when one is a matrix and another one is not, or when both are or are not matrices
     # We are parsing expression containing matrices slighly different from how it is done
     # in sympy which doesn't allow operations such as "3 + Matrix([1, 2, 3])". We want to
-    # make such kind of operation possible in our app though, so we are extending on what
-    # is offered by sympy
+    # make such kind of operation possible in our app by converting the 3 into a matrix the same
+    # shape as the one we want to add it to. Son the expression "3 + Matrix([1, 2, 3]) will be
+    # turned into the expression Matrix([3, 3, 3]) + Matrix([1, 2, 3])". We are doing this so
+    # we can use sympy to solve that expression (which by default it doesn't) for us
     if(operand1 in variable_dict and operand2 in variable_dict):
         return (operand1, operand2)
     elif(operand1 not in variable_dict and operand2 not in variable_dict):
@@ -108,22 +109,12 @@ def matricize_operands(operand1, operand2, operator, variable_dict):
         transformed_operand1 =  Matrix([operand1 for i in range(matrix_operand_size)])
         transformed_operand1 = transformed_operand1.reshape(operand2.shape[0], operand2.shape[1]) 
         return (transformed_operand1, operand2)
-    
+
+# Takes in an expression such as "_AAPL(return, 5d) + _AAPL(return, 10d, 1d)" and returns
+# "AAPLreturn5dAAPLreturn10d1d_1" assuming append = 1. the underscore is very important as
+# it prevents sympy from interpreting an expression such as "3abc - 2" as "3*a*b*c - 2"    
 def get_replacement_value(str_expression, append):
-    '''
-    Takes in an expression such as "_AAPL(return, 5d) + _AAPL(return, 10d, 1d)" and returns
-    "AAPLreturn5dAAPLreturn10d1d_1" assuming append = 1
-    '''
     pattern = r'[^a-zA-Z]|_'
     results_id = re.sub(pattern, "", str_expression) + "_" + str(append)
 
     return results_id
-
-    
-
-
-
-
-
-
-
