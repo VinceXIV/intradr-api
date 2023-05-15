@@ -160,8 +160,8 @@ class Expression:
         innermost_functions = []
 
         for arg_count in range(min_arg_count, max_arg_count+1):
-            r = "".join([",\s*\w+\s*" for i in range(arg_count)]) + r"\)"
-            regex = r"\w+\(\s*\w+\s*" + r
+            r = r"".join([",\s*\w+\s*" for i in range(arg_count)]) + r"\)"
+            regex = r"\w+\(\s*\w+\.?\w*\s*" + r
             innermost_functions.extend(re.findall(regex, str_expression))
 
         return innermost_functions 
