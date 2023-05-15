@@ -3,12 +3,13 @@ from sympy.parsing.sympy_parser import T
 import copy
 import re
 
+# Takes in an expression such as "x^(2y) + 3x + 7" and returns an array of expressions
+# such as ['2*y', 'x**(2*y)', '3*x', '3*x + x**(2*y) + 7'], which basically means we will
+# have to solve 2*x first, then x**(2*x) where we will just substitute the solution we got
+# from solving 2*x. After that we solve for 3*x then finally '3*x + x**(2*y) + 7'. In the
+# final stage, we will already have the solution for 3*x and x**(2*y), so at this point
+# after substituting with the solution, the expression might look something like 1 + 2 + 7
 def get_ordered_operations(str_expr):
-    '''
-    Takes in an expression such as "x^2 + y^2" and returns ['x**2', 'y**2', 'x**2 + y**2'],
-    which basically means we will have to solve "x**2" first, then "y**2", and finally
-    "x**2 + y**2"
-    '''
     parsed_str = parse_expr(str_expr, evaluate=False, transformations="all")
 
     ordered_operations = []
@@ -20,8 +21,8 @@ def get_ordered_operations(str_expr):
 
 def get_operators(expr, min_operators = 1, max_operators = 2):
     '''
-    We are only expecting simple expressions here (e.g "x + y"). This function returns the operators
-    in that expression. In the case of "x + y", it will return "+"
+    This function takes in an expression such as "x + y" and returns the operators used
+    in it. In the case of "x + y", it will return "+"
     '''
 
     expr = clean_expression(expr)
@@ -37,8 +38,8 @@ def get_operators(expr, min_operators = 1, max_operators = 2):
 
 def get_operands(expr):
     '''
-    We are only expecting simple expressions here (e.g "x + y"). This function returns the operants
-    in that expression. In the case of "x + y", it will return ["x", "y"]
+    This function takes in an expression such as "x + y" and returns the operands used.
+    In the case of "x + y", it will return ["x", "y"]
     '''
     expr = clean_expression(expr)
     operator = get_operators(expr=expr)
@@ -47,7 +48,8 @@ def get_operands(expr):
 
 def clean_expression(expr):
     '''
-    Removes spaces and also checks whether the expression makes sense
+    Removes spaces and also checks whether the expression makes sense. Expressions such as
+    "x y" or "x*****y", for instance, don't make sense
     '''
 
     if(len(re.findall('\*{3,}', expr)) > 0):
@@ -67,7 +69,8 @@ def clean_expression(expr):
     else:
         return re.sub(r' ', "", expr)
 
-# Returns true if the string is in the form "x + y" (the + can be a -, /, %, etc.) and false otherwise 
+# Returns true if the string contains at least one operator. string expressions
+# such as "x + y" (the + can be a -, /, %, etc.) will return true 
 def contains_operators(str_expression):
     return len(get_operators(str_expression, 0, 2)) > 0
 
