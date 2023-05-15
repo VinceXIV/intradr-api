@@ -22,9 +22,9 @@ def index():
 
     return jsonify(result)
 
-@app.route('/evaluate', methods=['GET'])
+@app.route('/evaluate', methods=['POST'])
 @cross_origin(support_credentials=True)
-def index():
+def evaluate():
     expression_array = request.args['expression_array']
     assets = request.args['assets']
 
