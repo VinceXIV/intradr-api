@@ -9,7 +9,7 @@ import matrixfunctions
 
 
 class Expression:
-    def __init__(self, str_expression, portfolio_assets = [], variable_dict = {}, 
+    def __init__(self, str_expression, assets = [], variable_dict = {}, 
                  period = "100d", interval="1d", time_zone = None, filter=None):
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
@@ -28,7 +28,7 @@ class Expression:
         # which returns an array for the apple's return in the last ten days sampled daily.
         # An example of a complex one is "_AAPL(price, 1d)", which returns apple's stock price one
         # day ago
-        self.asset_functions = ["_"+i for i in portfolio_assets]
+        self.asset_functions = ["_"+i for i in assets]
 
         
     def evaluate(self, str_expression=None, variable_dict = {}):
