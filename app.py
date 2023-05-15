@@ -25,11 +25,31 @@ def index():
 @app.route('/evaluate', methods=['GET'])
 @cross_origin(support_credentials=True)
 def index():
-    str_ = request.args['expression']
+    expression_array = request.args['expression_array']
     assets = request.args['assets']
-    expr = Expression(assets=assets, str_expression=str_)
 
-    return jsonify(expr.evaluate())
+    variable_dict = {}
+    error_list = []
+    for var_expression in expression_array:
+        var = ""
+        expression = ""
+        expr = None
+
+        try:
+            var, expression = var_expression.split("=")
+        except ValueError:
+            error_list.append({"error": "ValueError", "details": "expected {} to be in the form x = <some expression>".format(var_expression)})
+            continue
+        try:
+            expr = Expression(assets=assets, str_expression=expression, variable_dict=variable_dict)
+        except SyntaxError:
+            error_list.append({"error": "SyntaxError", "details": "{} is an invalid expression".format(expression)})
+            continue
+
+        intermediate_solution = expr.evaluate()
+        variable_dict[var] = intermediate_solution
+
+    return jsonify({"results": variable_dict, "errors": error_list})
 
 
 if __name__ == "__main__":
