@@ -8,7 +8,7 @@ import re
 # have to solve 2*x first, then x**(2*x) where we will just substitute the solution we got
 # from solving 2*x in the x**(2*x). After that we solve for 3*x then finally '3*x + x**(2*y) + 7'.
 # In the final stage, we will already have the solution for 3*x and x**(2*y), so at this point
-# after substituting with the solution, the expression might look something like 1 + 2 + 7
+# after substituting with intermediate solutions, the expression might end up looking like 1 + 2 + 7
 def get_ordered_operations(str_expr):
     parsed_str = parse_expr(str_expr, evaluate=False, transformations="all")
 
