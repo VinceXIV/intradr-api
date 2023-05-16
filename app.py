@@ -7,6 +7,8 @@ from expressiontree import clean_expression
 import numpy as np
 import graphs
 import utility_functions as uf
+import backdated
+import apputilities
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -81,6 +83,24 @@ def graph():
     )
 
     return html_str_graph
+
+@app.route('/graph_data', methods=['POST'])
+@cross_origin(support_credentials=True)
+def graph_data():
+    xpa = request.get_json()['expression_array']
+    ast = request.get_json()['assets']
+    bd = request.get_json()['backdate_period'] if 'backdate_period' in request.get_json() else 5
+
+    # breakpoint()
+    result = backdated.get_backdated_values(
+        expression_array = xpa,
+        assets = ast,
+        backdate_period = bd,
+        return_dataframe = False
+    )
+
+    return jsonify({"graph_data": apputilities.process_data_dict(result)})
+
 
 if __name__ == "__main__":
     app.run()
