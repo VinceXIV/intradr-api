@@ -2,7 +2,7 @@ from expression import Expression
 from expressiontree import clean_expression
 import pandas as pd
 
-def get_backdated_values(expression_array, assets, backdate_period):
+def get_backdated_values(expression_array, assets, backdate_period, return_dataframe = True):
     values = {}
     for b in reversed(range(backdate_period)):
         values[b] = {}
@@ -30,4 +30,7 @@ def get_backdated_values(expression_array, assets, backdate_period):
             if("MutableDenseMatrix" not in str(type(solution))):
                 values[b][var] = solution
 
-    return pd.DataFrame(values).transpose()
+    if(return_dataframe):
+        return pd.DataFrame(values).transpose()
+    else:
+        return values
