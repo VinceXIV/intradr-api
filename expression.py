@@ -186,7 +186,7 @@ class Expression:
         return re.findall(regex, expr)
 
     def __parse_simple_expression(self, str_expression, variable_dict):
-        return float(parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations=T[:11]))
+        return parse_expr(str_expression, evaluate=True, local_dict=variable_dict, transformations=T[:11])
     
     def __parse_complex_expression(self, str_expression, variable_dict, backdate=0):
         expr = copy.deepcopy(str_expression)
