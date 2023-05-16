@@ -6,6 +6,7 @@ from expression import Expression
 from expressiontree import clean_expression
 import numpy as np
 import graphs
+import utility_functions as uf
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -54,9 +55,9 @@ def evaluate():
         variable_dict[var] = intermediate_solution
 
         if("MutableDenseMatrix" in str(type(intermediate_solution))):
-            results.append({"name": var, "value": str(np.array(intermediate_solution).tolist())})
+            results.append({"name": var, "value": str(uf.recursive_round(np.array(intermediate_solution).tolist(), 4))})
         else:
-            results.append({"name": var, "value": str(intermediate_solution)})
+            results.append({"name": var, "value": str(uf.recursive_round(intermediate_solution, 4))})
 
     return jsonify({"results": results, "errors": error_list})
 
