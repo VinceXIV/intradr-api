@@ -34,7 +34,7 @@ def get_operators(expr, min_operators = 1, max_operators = 2):
         raise ValueError(
             "The expression contains {} operators which is out of the expected range".format(len(expr))
         )
-    return expr
+    return list(set(expr))
 
 def get_operands(expr):
     '''
@@ -42,9 +42,12 @@ def get_operands(expr):
     In the case of "x + y", it will return ["x", "y"]
     '''
     expr = clean_expression(expr)
-    operator = get_operators(expr=expr)
+    operators = get_operators(expr=expr, min_operators=0, max_operators=99999999999999)
 
-    return expr.split(operator)
+    for operator in operators:
+        expr = expr.replace(operator, " ")
+
+    return expr.split(" ")
 
 def clean_expression(expr):
     '''
