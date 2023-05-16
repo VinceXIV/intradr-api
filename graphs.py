@@ -1,6 +1,3 @@
-from expression import Expression
-from expressiontree import clean_expression
-import pandas as pd
 import mpld3
 import matplotlib.pyplot as plt
 from backdated import get_backdated_values
@@ -10,7 +7,7 @@ def plot(graph_type, variables, expression_array, assets, backdate_period=30, fi
         expression_array = expression_array,
         assets = assets,
         backdate_period = backdate_period)
-
+    
     fig = plt.figure(figsize = figsize)
     if(graph_type == "line"):
         for v in variables:
@@ -24,5 +21,3 @@ def plot(graph_type, variables, expression_array, assets, backdate_period=30, fi
     # Html_file.write(html_str)
     # Html_file.close()
     return html_str
-    
-
