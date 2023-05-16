@@ -22,7 +22,7 @@ def call(function_name, argument_array, variable_dict={}):
     elif(function_name == "_mmult"):
         return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])
     elif(function_name == "_transpose"):
-        return parse_expr("{m}.T".format(m=argument_array[0]))
+        return parse_expr("{m}.T".format(m=argument_array[0]), evaluate=True, transformations=T[:11])
 
 
 def get_argument_values(argument_array, function_name, variable_dict):
