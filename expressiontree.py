@@ -77,8 +77,10 @@ def contains_operators(str_expression):
 def solve_expression(expr, variable_dict):
     modified_expression = copy.deepcopy(expr)
     for key in variable_dict:
-        if key in expr:
-            modified_expression = modified_expression.replace(key, str(variable_dict[key]))
+        for variable in expr.split(" "):
+            if re.sub(r' ', "", key) == re.sub(r' ', "", variable):
+                breakpoint()
+                modified_expression = modified_expression.replace(key, str(variable_dict[key]))
 
     return parse_expr(modified_expression, evaluate=True, transformations=T[:11])
       
