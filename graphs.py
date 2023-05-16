@@ -10,9 +10,10 @@ def graph(graph, variables, expression_array, assets, backdate_period=30, figsiz
     fig = plt.figure(figsize = figsize)
     if(graph == "line"):
         for v in variables:
-            print(v)
-            print(df.index)
             plt.plot(df.index, df[v])
+            plt.title("line graph")
+            plt.xlabel("period")
+            plt.legend()
 
     html_str = mpld3.fig_to_html(fig)
     # Html_file= open("graph.html","w")
