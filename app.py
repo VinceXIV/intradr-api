@@ -43,6 +43,7 @@ def evaluate():
             error_list.append({"error": "ValueError", "details": "expected {} to be in the form x = <some expression>".format(var_expression)})
             continue
         try:
+            # breakpoint()
             expr = Expression(assets=assets, str_expression=expression, variable_dict=variable_dict)
         except SyntaxError:
             error_list.append({"error": "SyntaxError", "details": "{} is an invalid expression".format(expression)})
