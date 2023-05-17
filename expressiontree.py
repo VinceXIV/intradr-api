@@ -10,7 +10,7 @@ import re
 # In the final stage, we will already have the solution for 3*x and x**(2*y), so at this point
 # after substituting with intermediate solutions, the expression might end up looking like 1 + 2 + 7
 def get_ordered_operations(str_expr):
-    parsed_str = parse_expr(str_expr, evaluate=False, transformations="all")
+    parsed_str = parse_expr(str_expr, evaluate=False, transformations=T[:11])
 
     ordered_operations = []
     for ar in postorder_traversal(parsed_str):
