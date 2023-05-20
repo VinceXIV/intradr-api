@@ -42,7 +42,7 @@ class Numerical:
             # if backdate = 10, it means we are running this function 10 days ago.
             old_period_count = int(re.findall(r"\d+", period)[0])
             period_count = str(old_period_count + backdate)
-            period_length = re.findall(r"[a-zA-Z]", period)[0]
+            period_length = re.findall(r"[a-zA-Z]+", period)[0]
             new_period =  period_count + period_length
 
             historical_data = self.__get_historical_data(ticker, new_period, interval, time_zone, filter)
