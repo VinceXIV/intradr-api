@@ -1,6 +1,9 @@
 import yfinance as yf 
 import utility_functions
+import pandas as pd
 import re
+import dates
+from datetime import datetime, timedelta
 
 class Numerical:
     def __init__(self, period = "100d", interval="1d", time_zone = None, filter=None):
@@ -8,8 +11,9 @@ class Numerical:
         self.interval = interval
         self.time_zone = time_zone
         self.filter = filter
+        self.historical_data = pd.DataFrame()
 
-    def update_defaults(self, period = "100d", interval="1d", time_zone = None, filter=["Return"]):
+    def update_defaults(self, period = "100d", interval="1d", time_zone = None, filter=["return"]):
         self.period = period
         self.interval = interval
         self.time_zone = time_zone
@@ -45,11 +49,13 @@ class Numerical:
             period_length = re.findall(r"[a-zA-Z]+", period)[0]
             new_period =  period_count + period_length
 
-            historical_data = self.__get_historical_data(ticker, new_period, interval, time_zone, filter)
+            if(len(self.historical_data) < old_period_count + backdate):
+                self.historical_data = self.__get_historical_data(ticker, new_period, interval, time_zone, filter)
+
             if(interval == None):
-                return historical_data
+                return self.__get_historical_data(ticker, new_period, interval, time_zone, filter)
             else:
-                return historical_data.iloc[:old_period_count, :]
+                return self.__slice_data_by_date(historical_data = self.historical_data, period=period, backdate=backdate)
         
 
     
@@ -85,6 +91,7 @@ class Numerical:
 
         data = yf.download(tickers=ticker, period=period, interval=interval, progress=False)
         data = data.index.tz_convert(time_zone) if time_zone != None else data
+        data = data.reset_index("Date")
         data.columns = [utility_functions.snake_case(colname) for colname in data.columns]
 
         data['return'] = data["adj_close"].pct_change()
@@ -96,5 +103,52 @@ class Numerical:
             return data[filter]
         else:
             return data
+    
+    def __slice_data_by_date(self, historical_data, period, backdate):
+        # period is expected to come in the form; "10d", "1wk", "1mo", etc.,
+        # where d = day, wk = week, mo = month. Old period count extracts the
+        # digit part of it. so if it is 11wk, old period count will be 11
+        old_period_count = int(re.findall(r"\d+", period)[0])
+
+        # Here, we add the backdate period. Backdate is expected to be an 
+        # integer. so if we extracted 11 above, we simply add the backdate
+        period_count = str(old_period_count + backdate)
+
+        # We extract the letter part of the period. I mentioned initially that
+        # the period can come in the form "10d", "1wk", "1mo", etc. period length
+        # will be "d", "wk", "mo", etc
+        period_length = re.findall(r"[a-zA-Z]+", period)[0]
+
+        start_period =  period_count + period_length
+
+        # dates.get_date() takes in a string in the form "1d" and returns a 
+        # datetime.date object corresponding to the date. For instance, "1d"
+        # simply means one day ago. So it returns the datetime object that
+        # can be coerced into a string in the form <year>-<month>-<day> e.g "2023-05-1"
+        start_date = dates.get_date(start_period)  
+        end_date = dates.get_date(str(backdate)+period_length)
+
+        after_startdate_mask = historical_data['date'].dt.date >= start_date
+        before_enddate_mask = historical_data['date'].dt.date <= end_date
+
+        return historical_data[after_startdate_mask & before_enddate_mask]
+    
+    def __slice_data_by_period(self, historical_data, period, backdate):
+        # period is expected to come in the form; "10d", "1wk", "1mo", etc.,
+        # where d = day, wk = week, mo = month. Old period count extracts the
+        # digit part of it. so if it is 11wk, old period count will be 11
+        end_period = historical_data.index.max() - int(re.findall(r"\d+", period)[0])
+
+        # Here, we add the backdate period. Backdate is expected to be an 
+        # integer. so if we extracted 11 above, we simply add the backdate
+        start_period = historical_data.index.max() - (end_period + backdate)
+
+        start_period_mask = historical_data.index >= start_period
+        end_period_mask = historical_data.index <= end_period
+
+        return historical_data[start_period_mask & end_period_mask]
+
+
+
 
         
