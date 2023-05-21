@@ -26,8 +26,8 @@ def get_business_days_ago(n):
     '''
     Returns the date for the day that happened n business days ago
     '''
-    
+
     today = datetime.today().date()
     business_days = np.busday_offset(today, -n, roll='backward', weekmask='1111100')
 
-    return business_days.astype(datetime).strftime('%Y-%m-%d')
+    return business_days.astype(datetime)
