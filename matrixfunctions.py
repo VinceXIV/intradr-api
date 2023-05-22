@@ -17,7 +17,7 @@ def call(function_name, argument_array, variable_dict={}):
     elif(function_name == "_quantile"):
         return pd.Series(argument_array[0]).quantile(argument_array[1])
     elif(function_name == "_mmult"):
-        return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])
+        return matrix_multiply_arguments(argument_array)
     elif(function_name == "_transpose"):
         return parse_expr("{m}.T".format(m=argument_array[0]), evaluate=True, transformations=T[:11])
     elif(function_name == "_matrix"):
@@ -55,3 +55,13 @@ def matricize_arguments(argument_array):
     nrows = int(total_val / ncols)
     
     return parse_expr("Matrix({args})".format(args=argument_array)).reshape(ncols, nrows).transpose()
+
+def matrix_multiply_arguments(argument_array):
+    result = parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])
+    
+    # if len == 1, the results looks like [12], which is probably not helpful for other
+    # operations. We therefore, return 12 instead. Else we return results as is
+    if len(result) == 1:
+        return list(result)[0]
+    else:
+        return result
