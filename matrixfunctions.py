@@ -3,9 +3,6 @@ from sympy import parse_expr
 from sympy.parsing.sympy_parser import T
 
 def call(function_name, argument_array, variable_dict={}):
-    # print("function name: ", function_name)
-    # print("argument array: ", argument_array)
-    # print("variable dict: ", variable_dict)
     argument_array = get_argument_values(argument_array, function_name, variable_dict)
     if(function_name == "_avg"):
         return pd.Series(argument_array[0]).mean()
@@ -24,20 +21,7 @@ def call(function_name, argument_array, variable_dict={}):
     elif(function_name == "_transpose"):
         return parse_expr("{m}.T".format(m=argument_array[0]), evaluate=True, transformations=T[:11])
     elif(function_name == "_matrix"):
-        ncols = len(argument_array)
-
-        total_val = 0
-        for arg in argument_array:
-            try:
-                total_val += len(arg)
-            # this error will be thrown when arg is of type such as int. e.g len(0)
-            # in that case, we add 1
-            except TypeError:
-                total_val += 1
-
-        nrows = int(total_val / ncols)
-        
-        return parse_expr("Matrix({args})".format(args=argument_array)).reshape(ncols, nrows).transpose()
+        return matricize_arguments(argument_array)
 
 
 def get_argument_values(argument_array, function_name, variable_dict):
@@ -55,3 +39,19 @@ def get_argument_values(argument_array, function_name, variable_dict):
                 result.append(val)
 
     return result
+
+def matricize_arguments(argument_array):
+    ncols = len(argument_array)
+
+    total_val = 0
+    for arg in argument_array:
+        try:
+            total_val += len(arg)
+        # this error will be thrown when arg is of type such as int. e.g len(0)
+        # in that case, we add 1
+        except TypeError:
+            total_val += 1
+
+    nrows = int(total_val / ncols)
+    
+    return parse_expr("Matrix({args})".format(args=argument_array)).reshape(ncols, nrows).transpose()
