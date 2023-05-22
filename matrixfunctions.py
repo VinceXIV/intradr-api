@@ -1,5 +1,5 @@
 import pandas as pd
-from sympy import parse_expr
+from sympy import parse_expr, Matrix
 from sympy.parsing.sympy_parser import T
 
 def call(function_name, argument_array, variable_dict={}):
@@ -22,6 +22,8 @@ def call(function_name, argument_array, variable_dict={}):
         return parse_expr("{m}.T".format(m=argument_array[0]), evaluate=True, transformations=T[:11])
     elif(function_name == "_matrix"):
         return matricize_arguments(argument_array)
+    elif(function_name == "_matricize"):
+        return matricize_scalar_variable(argument_array)
 
 
 def get_argument_values(argument_array, function_name, variable_dict):
@@ -57,4 +59,13 @@ def matricize_arguments(argument_array):
     return parse_expr("Matrix({args})".format(args=argument_array)).reshape(ncols, nrows).transpose()
 
 def matrix_multiply_arguments(argument_array):
-    return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])
+    return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]),evaluate=True, transformations=T[:11])
+
+def matricize_scalar_variable(argument_array):
+    scalar_variable = argument_array[0]
+    matrix_variable = argument_array[1]
+
+    nrows, ncols = matrix_variable.shape
+
+    return Matrix([scalar_variable for i in range(nrows * ncols)]).reshape(nrows, ncols)
+
