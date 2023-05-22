@@ -174,8 +174,38 @@ class Expression:
         return re.findall(regex, expr)[0]
     
     # Receives a string in the form "average(var1, var2, var3)" and returns [var1, var2, var3]
-    def get_function_arguments(self, expr):
-        return re.findall(r"(?<=\().+(?=\))", expr)[0].replace(" ", "").split(",")
+    def get_function_arguments(self, str_expr):
+        expr = copy.deepcopy(str_expr)
+        # We first find list like arguments. This might come when the function is called with
+        # an expression that looks like this; _transpose([1, 2, 3]). Here, the function is
+        # "_transpose". The argumetn is [1, 2, 3]. The variable "list_like_arguments" will end
+        # up having a list of such variables, which for the case of "_transpose([1, 2,3]" will
+        # be "[[1, 2, 3]]"
+        regex_list_like = r'(\[+.*?\]+)'
+        list_like_arguments = re.findall(regex_list_like, expr)
+
+        # We then replace the list_like_arguments with a temporary id, so we don't have a problem
+        # splitting the rest of the arguments using a comma. For example, the argument (str_expr)
+        # may come in the form "_<function_nmae>([1, 2, 3], [x, y,z], a, b, c)". We want our final
+        # results to be a list with values [1, 2, 3], [x, y, z], a, b, and c. We can do that by
+        # splitting the string using a comma (","). But doing that right away would split the 
+        # lists too. So we replace them with placeholder values, transforming the above function from
+        # the form "_<function_nmae>([1, 2, 3], [x, y,z], a, b, c)" to "_<function_name>(xyz_0, xyz_1, a, b, c)"
+        temp_vals = {}
+        for arg, i in zip(list_like_arguments, range(len(list_like_arguments))):
+            temp_val = self.__get_intermediate_results_id(expr, i)
+            expr = expr.replace(arg, temp_val)
+            temp_vals[temp_val] = arg
+
+        arg_list = re.findall(r"(?<=\().+(?=\))", expr)[0].replace(" ", "").split(",")
+
+        return [temp_vals[arg] if arg in temp_vals else arg for arg in arg_list]
+    
+    # Receives function argument. If the argument is in the form "[var1, <blah blah blah >]" it
+    # returns true
+    def is_a_list(function_argument):
+        regex = r"\[\s*\w*\s*,*.*\]"
+        return len(re.findall(regex, function_argument)) > 0
     
     # Takes in an expression such as
     # "_mmult(_transpose(_AAPL(return, 10d, 1d) - _avg(_AAPL(return, 10d, 1d)), _AAPL(return, 10d, 1d) - _avg(_AAPL(return, 10d, 1d))"
