@@ -195,7 +195,9 @@ class Expression:
         for arg, i in zip(list_like_arguments, range(len(list_like_arguments))):
             temp_val = self.__get_intermediate_results_id(expr, i)
             expr = expr.replace(arg, temp_val)
-            temp_vals[temp_val] = arg
+
+            # we are interpreting all values in the form "[blah, blahblah]" as matrices
+            temp_vals[temp_val] = arg.replace("[", "Matrix([").replace("]", "])")
 
         arg_list = re.findall(r"(?<=\().+(?=\))", expr)[0].replace(" ", "").split(",")
 
