@@ -13,7 +13,7 @@ class Expression:
                  period = "100d", interval="1d", time_zone = None, filter=None, backdate=None):
         self.numerical = Numerical(period = period, interval=interval, time_zone = time_zone, filter=filter)
         self.variable_dict = variable_dict
-        self.expression = str_expression
+        self.expression = self.__preprocess_expression(str_expression)
         self.backdate = 0 if backdate == None else backdate
 
         # These functions return a matrix. It can be (1, n), (n, 1) or (n, n) matrices 
@@ -34,7 +34,7 @@ class Expression:
         
     def evaluate(self, str_expression=None, variable_dict = {}, backdate=None):
         variable_dict = self.variable_dict if variable_dict == {} else variable_dict
-        str_expression = self.expression if str_expression == None else str_expression
+        str_expression = self.expression if str_expression == None else self.__preprocess_expression(str_expression)
         backdate = self.backdate if backdate == None else backdate
 
         # This function returns an object of arrays in the form {__AAPL: [], min: []}.
@@ -252,6 +252,9 @@ class Expression:
         results_id = re.sub(pattern, "", str_expression) + "_" + str(append)
 
         return results_id
+    
+    def __preprocess_expression(self, str_expression):
+        return str_expression.replace("[", "_matrix(").replace("]", ")")
 
 
     

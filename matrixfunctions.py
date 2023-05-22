@@ -23,6 +23,21 @@ def call(function_name, argument_array, variable_dict={}):
         return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])
     elif(function_name == "_transpose"):
         return parse_expr("{m}.T".format(m=argument_array[0]), evaluate=True, transformations=T[:11])
+    elif(function_name == "_matrix"):
+        ncols = len(argument_array)
+
+        total_val = 0
+        for arg in argument_array:
+            try:
+                total_val += len(arg)
+            # this error will be thrown when arg is of type such as int. e.g len(0)
+            # in that case, we add 1
+            except TypeError:
+                total_val += 1
+
+        nrows = int(total_val / ncols)
+        
+        return parse_expr("Matrix({args})".format(args=argument_array)).reshape(ncols, nrows).transpose()
 
 
 def get_argument_values(argument_array, function_name, variable_dict):
