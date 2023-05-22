@@ -14,8 +14,6 @@ def call(function_name, argument_array, variable_dict={}):
         return pd.Series(argument_array[0]).std()
     elif(function_name == "_var"):
         return pd.Series(argument_array[0]).var()
-    elif(function_name == "_quantile"):
-        return pd.Series(argument_array[0]).quantile(argument_array[1])
     elif(function_name == "_mmult"):
         return matrix_multiply_arguments(argument_array)
     elif(function_name == "_transpose"):
@@ -23,8 +21,27 @@ def call(function_name, argument_array, variable_dict={}):
     elif(function_name == "_matrix"):
         return matricize_arguments(argument_array)
     elif(function_name == "_matricize"):
-        return matricize_scalar_variable(argument_array)
-
+        return matricize_scalar_variable(scalar_variable=argument_array[0], matrix_variable=argument_array[1])
+    elif(function_name == "_mavg"):
+        sv = pd.Series(list(argument_array[0])).mean()
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_mmax"):
+        sv = pd.Series(list(argument_array[0])).max()
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_mmin"):
+        sv = pd.Series(list(argument_array[0])).min()
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_mstd"):
+        sv = pd.Series(list(argument_array[0])).std()
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_mvar"):
+        sv = pd.Series(list(argument_array[0])).var()
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
 
 def get_argument_values(argument_array, function_name, variable_dict):
     result = []
@@ -61,11 +78,7 @@ def matricize_arguments(argument_array):
 def matrix_multiply_arguments(argument_array):
     return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]),evaluate=True, transformations=T[:11])
 
-def matricize_scalar_variable(argument_array):
-    scalar_variable = argument_array[0]
-    matrix_variable = argument_array[1]
-
+def matricize_scalar_variable(scalar_variable, matrix_variable):
     nrows, ncols = matrix_variable.shape
-
     return Matrix([scalar_variable for i in range(nrows * ncols)]).reshape(nrows, ncols)
 
