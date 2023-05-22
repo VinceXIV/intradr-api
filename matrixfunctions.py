@@ -57,11 +57,4 @@ def matricize_arguments(argument_array):
     return parse_expr("Matrix({args})".format(args=argument_array)).reshape(ncols, nrows).transpose()
 
 def matrix_multiply_arguments(argument_array):
-    result = parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])
-    
-    # if len == 1, the results looks like [12], which is probably not helpful for other
-    # operations. We therefore, return 12 instead. Else we return results as is
-    if len(result) == 1:
-        return list(result)[0]
-    else:
-        return result
+    return parse_expr("{m1}*{m2}".format(m1 = argument_array[0], m2=argument_array[1]), evaluate=True, transformations=T[:11])

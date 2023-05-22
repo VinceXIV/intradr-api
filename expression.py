@@ -64,10 +64,18 @@ class Expression:
         # evaluate_complex_functions()
         non_simple_functions = self.get_functions_used(str_expression)
 
+        result = None
         if len(non_simple_functions) > 0:
-            return self.__parse_complex_expression(str_expression, variable_dict, backdate)
+            result = self.__parse_complex_expression(str_expression, variable_dict, backdate)
         else:
-            return self.__parse_simple_expression(str_expression, variable_dict)
+            result = self.__parse_simple_expression(str_expression, variable_dict)
+
+        # if len == 1, the results looks like [12], which is probably not helpful for other
+        # operations. We therefore, return 12 instead. Else we return results as is
+        if "Matrix" in str(type(result)) and len(result) == 1:
+            return list(result)[0]
+        else:
+            return result
     
     # This function returns an object of arrays in the form {__AAPL: [], min: []}.
     # The arrays, on the other hand, are in the form; 
