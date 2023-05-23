@@ -4,7 +4,13 @@ from sympy.parsing.sympy_parser import T
 
 def call(function_name, argument_array, variable_dict={}):
     argument_array = get_argument_values(argument_array, function_name, variable_dict)
-    if(function_name == "_avg"):
+    if(function_name == "_count"):
+        return len(argument_array[0])
+    elif(function_name == "_nrows"):
+        return argument_array[0].shape[0]
+    elif(function_name == "_ncols"):
+        return argument_array[0].shape[1]
+    elif(function_name == "_avg"):
         return pd.Series(argument_array[0]).mean()
     elif(function_name == "_max"):
         return pd.Series(argument_array[0]).max()
@@ -22,6 +28,18 @@ def call(function_name, argument_array, variable_dict={}):
         return matricize_arguments(argument_array)
     elif(function_name == "_matricize"):
         return matricize_scalar_variable(scalar_variable=argument_array[0], matrix_variable=argument_array[1])
+    elif(function_name == "_mcount"):
+        sv = argument_array[0].shape[0]
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_mnrows"):
+        sv = argument_array[0].shape[0]
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_mncols"):
+        sv = argument_array[0].shape[1]
+        mv = argument_array[0]
+        return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
     elif(function_name == "_mavg"):
         sv = pd.Series(list(argument_array[0])).mean()
         mv = argument_array[0]
