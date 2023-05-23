@@ -6,4 +6,8 @@ def recursive_round(value, decimal_places):
         iter(value)
         return [recursive_round(val, decimal_places) for val in value]
     except:
-        return round(float(value), decimal_places)
+        try:
+            return round(float(value), decimal_places)
+        except:
+            raise ValueError(
+                "Value received was {value}, which is invalid. Possible reasons include; (1) Using function that don't exist as in a typo".format(value=value))
