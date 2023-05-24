@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from stocksymbol import StockSymbol
-from ssm import *
 from expression import Expression
 from expressiontree import clean_expression
 import numpy as np
