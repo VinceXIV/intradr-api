@@ -9,6 +9,7 @@ import graphs
 import utility_functions as uf
 import backdated
 import apputilities
+from numericals import Numerical
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -100,6 +101,14 @@ def graph_data():
     )
 
     return jsonify({"graph_data": apputilities.process_data_dict(result)})
+
+@app.route('/fundamentals', methods=['POST'])
+@cross_origin(support_credentials=True)
+def fundamentals():
+    ticker = request.get_json()['ticker']
+
+    num = Numerical()
+    return jsonify({"name": ticker, "value": num.get_numeric_info(ticker=ticker)})
 
 
 if __name__ == "__main__":
