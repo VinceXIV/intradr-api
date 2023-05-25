@@ -63,26 +63,26 @@ def evaluate():
 
     return jsonify({"results": results, "errors": error_list})
 
-@app.route('/graph', methods=['POST'])
-@cross_origin(support_credentials=True)
-def graph():
-    variables = request.get_json()['variables']
-    expression_array = request.get_json()['expression_array']
-    assets = request.get_json()['assets']
-    graph_type = request.get_json()['graph_type'] if 'graph_type' in request.get_json() else 'line'
-    backdate_period = request.get_json()['backdate_period'] if 'backdate_period' in request.get_json() else 30
-    figure_size = request.get_json()['figure_size'] if 'figure_size' in request.get_json() else (9, 4)
+# @app.route('/graph', methods=['POST'])
+# @cross_origin(support_credentials=True)
+# def graph():
+#     variables = request.get_json()['variables']
+#     expression_array = request.get_json()['expression_array']
+#     assets = request.get_json()['assets']
+#     graph_type = request.get_json()['graph_type'] if 'graph_type' in request.get_json() else 'line'
+#     backdate_period = request.get_json()['backdate_period'] if 'backdate_period' in request.get_json() else 30
+#     figure_size = request.get_json()['figure_size'] if 'figure_size' in request.get_json() else (9, 4)
 
-    html_str_graph = graphs.plot(
-        graph_type = graph_type,
-        variables = variables,
-        expression_array = expression_array,
-        assets = assets,
-        backdate_period=backdate_period,
-        figsize= figure_size
-    )
+#     html_str_graph = graphs.plot(
+#         graph_type = graph_type,
+#         variables = variables,
+#         expression_array = expression_array,
+#         assets = assets,
+#         backdate_period=backdate_period,
+#         figsize= figure_size
+#     )
 
-    return html_str_graph
+#     return html_str_graph
 
 @app.route('/graph_data', methods=['POST'])
 @cross_origin(support_credentials=True)
