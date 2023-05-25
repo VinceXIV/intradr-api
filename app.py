@@ -9,6 +9,7 @@ import utility_functions as uf
 import backdated
 import apputilities
 from numericals import Numerical
+import os
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -21,7 +22,7 @@ def index():
     index = request.args['index'] if request.args['index'] != "N/A" else None
     limit = int(request.args["limit"])
 
-    ss = StockSymbol(sym)
+    ss = os.getenv("STOCK_SYMBOL_KEY")
     result = ss.get_symbol_list(market=market, index=index)[:limit]
 
     return jsonify(result)
