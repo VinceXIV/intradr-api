@@ -21,7 +21,11 @@ def call(function_name, argument_array, variable_dict={}):
     elif(function_name == "_var"):
         return pd.Series(argument_array[0]).var()
     elif(function_name == "_mmult"):
-        return matrix_multiply_arguments(argument_array)
+        result = matrix_multiply_arguments(argument_array)
+        if "Matrix" in str(type(result)) and len(result) == 1:
+            return list(result)[0]
+        else:
+            return result
     elif(function_name == "_transpose"):
         return parse_expr("{m}.T".format(m=argument_array[0]), evaluate=True, transformations=T[:11])
     elif(function_name == "_matrix"):
