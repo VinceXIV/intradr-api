@@ -60,7 +60,7 @@ def evaluate():
         if("MutableDenseMatrix" in str(type(intermediate_solution))):
             results.append({"name": var, "value": str(uf.recursive_round(np.array(intermediate_solution).tolist(), 4)), "shape": intermediate_solution.shape})
         else:
-            results.append({"name": var, "value": str(uf.recursive_round(intermediate_solution, 4)),"shape": 1})
+            results.append({"name": var, "value": str(uf.recursive_round(intermediate_solution, 4)), "shape": 1})
 
     return jsonify({"results": results, "errors": error_list})
 
