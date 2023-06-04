@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from stocksymbol import StockSymbol
-from ssm import *
 from expression import Expression
 from expressiontree import clean_expression
 import numpy as np
@@ -9,6 +8,8 @@ import graphs
 import utility_functions as uf
 import backdated
 import apputilities
+from numericals import Numerical
+import os
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -21,7 +22,7 @@ def index():
     index = request.args['index'] if request.args['index'] != "N/A" else None
     limit = int(request.args["limit"])
 
-    ss = StockSymbol(sym)
+    ss = os.getenv("STOCK_SYMBOL_KEY")
     result = ss.get_symbol_list(market=market, index=index)[:limit]
 
     return jsonify(result)
@@ -57,32 +58,32 @@ def evaluate():
         variable_dict[var] = intermediate_solution
 
         if("MutableDenseMatrix" in str(type(intermediate_solution))):
-            results.append({"name": var, "value": str(uf.recursive_round(np.array(intermediate_solution).tolist(), 4))})
+            results.append({"name": var, "value": str(uf.recursive_round(np.array(intermediate_solution).tolist(), 4)), "shape": intermediate_solution.shape})
         else:
-            results.append({"name": var, "value": str(uf.recursive_round(intermediate_solution, 4))})
+            results.append({"name": var, "value": str(uf.recursive_round(intermediate_solution, 4)),"shape": 1})
 
     return jsonify({"results": results, "errors": error_list})
 
-@app.route('/graph', methods=['POST'])
-@cross_origin(support_credentials=True)
-def graph():
-    variables = request.get_json()['variables']
-    expression_array = request.get_json()['expression_array']
-    assets = request.get_json()['assets']
-    graph_type = request.get_json()['graph_type'] if 'graph_type' in request.get_json() else 'line'
-    backdate_period = request.get_json()['backdate_period'] if 'backdate_period' in request.get_json() else 30
-    figure_size = request.get_json()['figure_size'] if 'figure_size' in request.get_json() else (9, 4)
+# @app.route('/graph', methods=['POST'])
+# @cross_origin(support_credentials=True)
+# def graph():
+#     variables = request.get_json()['variables']
+#     expression_array = request.get_json()['expression_array']
+#     assets = request.get_json()['assets']
+#     graph_type = request.get_json()['graph_type'] if 'graph_type' in request.get_json() else 'line'
+#     backdate_period = request.get_json()['backdate_period'] if 'backdate_period' in request.get_json() else 30
+#     figure_size = request.get_json()['figure_size'] if 'figure_size' in request.get_json() else (9, 4)
 
-    html_str_graph = graphs.plot(
-        graph_type = graph_type,
-        variables = variables,
-        expression_array = expression_array,
-        assets = assets,
-        backdate_period=backdate_period,
-        figsize= figure_size
-    )
+#     html_str_graph = graphs.plot(
+#         graph_type = graph_type,
+#         variables = variables,
+#         expression_array = expression_array,
+#         assets = assets,
+#         backdate_period=backdate_period,
+#         figsize= figure_size
+#     )
 
-    return html_str_graph
+#     return html_str_graph
 
 @app.route('/graph_data', methods=['POST'])
 @cross_origin(support_credentials=True)
@@ -101,7 +102,15 @@ def graph_data():
 
     return jsonify({"graph_data": apputilities.process_data_dict(result)})
 
+@app.route('/fundamentals', methods=['POST'])
+@cross_origin(support_credentials=True)
+def fundamentals():
+    ticker = request.get_json()['ticker']
+
+    num = Numerical()
+    return jsonify({"name": ticker, "value": num.get_numeric_info(ticker=ticker)})
+
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0', port=10000)
 

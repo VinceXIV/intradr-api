@@ -22,11 +22,11 @@ class Numerical:
     def get_numeric_info(self, ticker):
         ticker_details = yf.Ticker(ticker)
 
-        numeric_info = {}
+        numeric_info = []
         for key in ticker_details.info.keys():
             val = ticker_details.info[key]
             if(type(val) == int or type(ticker_details.info[key]) == float):
-                numeric_info[key] = val
+                numeric_info.append({"name": key, "value": val})
 
         return numeric_info
 
