@@ -42,6 +42,30 @@ def call(function_name, argument_array, variable_dict={}):
         sv = pd.Series(list(argument_array[0])).var()
         mv = argument_array[0]
         return matricize_scalar_variable(scalar_variable=sv, matrix_variable=mv)
+    elif(function_name == "_greater"):
+        val1 = argument_array[0]
+        val2 = argument_array[1]
+        return float(val1 > val2)
+    elif(function_name == "_greater_or_equal"):
+        val1 = argument_array[0]
+        val2 = argument_array[1]
+        return float(val1 >= val2)
+    elif(function_name == "_less"):
+        val1 = argument_array[0]
+        val2 = argument_array[1]
+        return float(val1 < val2)
+    elif(function_name == "_less_or_equal"):
+        val1 = argument_array[0]
+        val2 = argument_array[1]
+        return float(val1 <= val2)
+    elif(function_name == "_equal"):
+        val1 = argument_array[0]
+        val2 = argument_array[1]
+        return float(val1 == val2)        
+    elif(function_name == "_not_equal"):
+        val1 = argument_array[0]
+        val2 = argument_array[1]
+        return float(val1 != val2)        
 
 def get_argument_values(argument_array, function_name, variable_dict):
     result = []
